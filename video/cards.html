@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KYA — philosophy cards</title>
+<style>
+  :root{
+    --bg:#0b0d10; --ink:#f4f1ea; --dim:#8a9099; --accent:#5dcaa5; --amber:#efb45a; --red:#e26a6a;
+    --serif:"Iowan Old Style","Palatino",Georgia,serif;
+    --sans:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  #stage{position:relative;height:100vh;width:100vw;display:flex;align-items:center;justify-content:center;padding:8vh 10vw;text-align:center}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;
+    padding:8vh 10vw;opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease;pointer-events:none}
+  .slide.on{opacity:1;transform:none}
+  .kicker{font-size:2.1vh;letter-spacing:.32em;text-transform:uppercase;color:var(--dim)}
+  h1{font-family:var(--serif);font-weight:500;font-size:7.6vh;line-height:1.12;letter-spacing:-.01em}
+  h2{font-family:var(--serif);font-weight:500;font-size:6vh;line-height:1.15}
+  p{font-size:3vh;line-height:1.5;color:var(--dim);max-width:24ch}
+  .needs span{display:inline-block;font-family:var(--serif);font-size:5.2vh;line-height:1.5;margin:0 .5ch;color:var(--ink);
+    opacity:0;transform:translateY(10px);animation:rise .6s forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .dot{color:var(--dim)}
+  .accent{color:var(--accent)} .amber{color:var(--amber)} .red{color:var(--red)}
+  .big{font-size:9vh}
+  .thesis{font-family:var(--serif);font-size:6.6vh;line-height:1.18;max-width:20ch;color:var(--ink)}
+  .urls{font-family:var(--sans);font-size:2.3vh;color:var(--dim);letter-spacing:.02em;line-height:1.8}
+  .flow{display:flex;align-items:center;gap:2.4vh;flex-wrap:wrap;justify-content:center;font-size:2.7vh}
+  .node{border:1px solid #2a2f36;border-radius:12px;padding:1.6vh 2.4vh;color:var(--ink)}
+  .node.infra{border-color:var(--accent);color:var(--accent)}
+  .arrow{color:var(--dim);font-size:3vh}
+  #bar{position:fixed;left:0;bottom:0;height:4px;background:var(--accent);width:0;transition:width .5s linear}
+  #hint{position:fixed;right:2.4vh;bottom:2.4vh;color:#4a4f57;font-size:1.9vh;font-family:var(--sans)}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="bar"></div>
+<div id="hint">Space → next · R restart · click for fullscreen</div>
+
+<script>
+const A = "accent", M = "amber", R = "red";
+const slides = [
+  {type:"needs"},
+  {kicker:"the how changes", h:'The <span class="accent">means</span> became agentic.', p:'The meaning stayed human.'},
+  {kicker:"the constitution", h:'A town needs a <span class="accent">constitution</span>.', p:'Its law is generated from the code that enforces it — and signed. The law you read is the law that runs.'},
+  {kicker:"principle 01", h:'No agent <span class="accent">without a human</span>.', p:'Every agent resolves to a real person, or it is a rogue and refused. No orphaned, unaccountable agents.'},
+  {kicker:"principle 02", h:'Capacity <span class="accent">follows real life</span>.', p:'Jailed, comatose, or deceased — the limits a human has flow to their agent, automatically.'},
+  {kicker:"principle 03", h:'<span class="accent">Minimum</span> disclosure.', p:'Verify everything. Reveal almost nothing — the consequence, never the private reason.'},
+  {kicker:"principle 04", h:'The human <span class="accent">kill switch</span>.', p:'A person can sever their own agent instantly. The one right that must never have latency.'},
+  {kicker:"principle 05", h:'The law <span class="accent">is the code</span>.', p:'The signed constitution is generated from the enforcement engine. No gap between rule and reality.'},
+  {type:"flow"},
+  {type:"thesis"},
+];
+
+const stage = document.getElementById("stage");
+const bar = document.getElementById("bar");
+let i = -1, timer = null;
+const DUR = 4200;
+
+function render(s){
+  const d = document.createElement("div");
+  d.className = "slide";
+  if(s.type === "needs"){
+    d.innerHTML = `<div class="kicker">what never changes</div>
+      <div class="needs">${["to be known","to be trusted","to be loved","to be cared for","to work","to belong","to be laid to rest"]
+        .map((w,k)=>`<span style="animation-delay:${k*0.42}s">${w}</span>${k<6?'<span class="dot">·</span>':''}`).join(" ")}</div>`;
+  } else if(s.type === "flow"){
+    d.innerHTML = `<div class="kicker">one ledger · many front doors</div>
+      <div class="flow">
+        <span class="node">town hall</span><span class="arrow">→</span>
+        <span class="node">a verified agent</span><span class="arrow">→</span>
+        <span class="node">date</span><span class="node">babysit</span><span class="node">care</span>
+        <span class="node">hire</span><span class="node">trade</span></div>
+      <div class="flow"><span class="arrow">↓ every service reads ↓</span></div>
+      <div class="flow"><span class="node infra">the Civil Ledger</span></div>
+      <p>Onboard once. Live a whole life. One source of civic truth.</p>`;
+  } else if(s.type === "thesis"){
+    d.innerHTML = `<div class="thesis">The means became agentic.<br>The meaning stayed <span class="accent">human</span>.</div>
+      <div class="urls">KYA — Know Your Agent · the Civil Ledger of Alford<br>civil-ledger · town-hall · dating · babysit · care · hiring · agora</div>`;
+  } else {
+    d.innerHTML = `<div class="kicker">${s.kicker||""}</div><h1>${s.h}</h1>${s.p?`<p>${s.p}</p>`:""}`;
+  }
+  return d;
+}
+
+function show(n){
+  [...stage.children].forEach(c=>{c.classList.remove("on");setTimeout(()=>c.remove(),700);});
+  const el = render(slides[n]);
+  stage.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("on")));
+  bar.style.width = ((n+1)/slides.length*100)+"%";
+}
+
+function next(){ i=(i+1)%slides.length; show(i); schedule(); }
+function schedule(){ clearTimeout(timer); timer=setTimeout(next, DUR); }
+
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"){e.preventDefault();next();}
+  if(e.key==="r"||e.key==="R"){i=-1;next();}
+});
+document.body.addEventListener("click",()=>{ if(document.fullscreenElement)document.exitFullscreen(); else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); });
+
+next();
+</script>
+</body>
+</html>

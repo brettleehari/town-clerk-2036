@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+*.rootseed
+
+# local build-loop scratch (kept on disk, out of the published repo)
+CLAUDE.md
+overnight/PROMPT.md
+overnight/README.md
+overnight/progress.md
+overnight/ralph.sh
+overnight/logs/

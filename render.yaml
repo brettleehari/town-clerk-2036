@@ -1,0 +1,167 @@
+# Render Blueprint — deploys ALL EIGHT services from this one repo
+# (the Civil Ledger + seven front doors: 2 producers, 5 consumers).
+# In Render: New → Blueprint → connect this repo. It reads this file and creates each
+# service, auto-wiring every front door's LEDGER_URL to the civil-ledger service.
+services:
+  # ---- the infrastructure: the Civil Ledger (repo root) ----
+  - type: web
+    name: civil-ledger
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: KYA_DB
+        value: /tmp/kya.db
+      - key: KYA_ROOT_SEED
+        generateValue: true
+      # Repoint the demo video any time without touching the submitted URL.
+      # Leave unset to serve video/demo.mp4 from the repo, or the placeholder page.
+      - key: VIDEO_URL
+        sync: false
+      # Set this in the Render dashboard to enable POST /admin/reset-seed.
+      # Leave unset and the endpoint stays disabled (403).
+      - key: KYA_ADMIN_KEY
+        sync: false
+
+  # ---- producer front door ----
+  - type: web
+    name: town-hall
+    runtime: python
+    plan: free
+    rootDir: services/town-hall
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com
+
+  # ---- consumer front doors ----
+  - type: web
+    name: dating
+    runtime: python
+    plan: free
+    rootDir: services/dating
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com
+
+  - type: web
+    name: babysit
+    runtime: python
+    plan: free
+    rootDir: services/babysit
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com
+
+  - type: web
+    name: care-proxy
+    runtime: python
+    plan: free
+    rootDir: services/care-proxy
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com
+
+  - type: web
+    name: hiring
+    runtime: python
+    plan: free
+    rootDir: services/hiring
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com
+
+  - type: web
+    name: agora
+    runtime: python
+    plan: free
+    rootDir: services/agora
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com
+
+  # ---- second producer front door: an institution that WRITES civil status ----
+  - type: web
+    name: hospital-window
+    runtime: python
+    plan: free
+    rootDir: services/hospital-window
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # pydantic 2.7.1 pins pydantic-core 2.18.2, which ships no wheel for Python 3.13 —
+      # pip would build it from source (Rust) and fail. Pin the interpreter the tests run on.
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # `fromService.property: host` yields the bare internal name "civil-ledger", which does
+      # not resolve from a Render web service — the front doors 502'd with
+      # "Name or service not known". Point at the ledger's public origin instead.
+      - key: LEDGER_URL
+        value: https://civil-ledger.onrender.com

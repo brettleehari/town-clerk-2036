@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>skill.md — rendered</title>
+<style>
+  :root{--bg:#07090f;--panel:#0c111c;--ink:#e8edf6;--dim:#9aa3b6;--faint:#2a3346;
+    --gold:#e9c46a;--gold-dim:#7a6a3a;--green:#39d98a;--red:#ff5470;--code:#0a1120}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.68 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,sans-serif}
+  header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:14px 22px;background:#07090fe6;border-bottom:1px solid var(--faint);backdrop-filter:blur(8px)}
+  header b{font-weight:600;letter-spacing:.02em}
+  header small{color:var(--dim)}
+  header .sp{margin-left:auto}
+  header a{color:var(--gold);text-decoration:none;font-size:13px;border:1px solid var(--gold-dim);
+    border-radius:999px;padding:6px 12px;transition:.15s}
+  header a:hover{background:#1a2138}
+  main{max-width:820px;margin:0 auto;padding:34px 24px 90px}
+  h1,h2,h3{line-height:1.2;font-weight:700;letter-spacing:-.01em}
+  h1{font-size:30px;margin:.2em 0 .5em;
+    background:linear-gradient(180deg,#fff,#c7cede);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:22px;margin:1.7em 0 .5em;padding-top:.6em;border-top:1px solid var(--faint)}
+  h3{font-size:16.5px;margin:1.4em 0 .4em;color:var(--gold)}
+  p{margin:.7em 0}
+  a{color:var(--gold)}
+  strong{color:#fff;font-weight:600}
+  em{color:var(--gold);font-style:italic}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+    background:#131a2a;color:var(--gold);padding:1.5px 6px;border-radius:5px}
+  pre{background:var(--code);border:1px solid var(--faint);border-radius:10px;
+    padding:14px 16px;overflow-x:auto;margin:.9em 0}
+  pre code{background:none;color:#cdd6e6;padding:0;font-size:12.8px;line-height:1.55}
+  table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--faint);padding:7px 11px;text-align:left;vertical-align:top}
+  th{background:#0f1524;color:var(--dim);font-weight:600;white-space:nowrap}
+  td code{white-space:nowrap}
+  hr{border:0;border-top:1px solid var(--faint);margin:2em 0}
+  ol,ul{padding-left:1.4em}
+  li{margin:.3em 0}
+  blockquote{border-left:3px solid var(--gold-dim);margin:1em 0;padding:.2em 1em;color:var(--dim)}
+  .fm{background:#0a1120;border:1px solid var(--faint);border-radius:10px;padding:14px 16px;margin:0 0 8px;
+    font-size:13.5px;color:var(--dim)}
+  .fm b{color:var(--gold)}
+  .loading{color:var(--dim);padding:40px 0}
+  .err{color:var(--red)}
+</style>
+</head>
+<body>
+<header>
+  <b>Alford</b><small>· a front door · skill.md — rendered</small>
+  <span class="sp"></span>
+  <a href="/skill.md">view raw ↧</a>
+  <a href="/docs">OpenAPI ↗</a>
+  <a href="https://civil-ledger.onrender.com/city">trust map ↗</a>
+  <a href="https://civil-ledger.onrender.com/skill">Civil Ledger ↗</a>
+</header>
+<main id="out"><div class="loading">Loading /skill.md …</div></main>
+<script>
+// Self-contained Markdown renderer for the subset skill.md uses: frontmatter, #/##/###
+// headings, **bold**, *italic*, `code`, [links](url), 4-space code blocks, pipe tables,
+// --- rules, numbered/bulleted lists, and blockquotes.
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function inline(s){
+  const spans = [];
+  s = s.replace(/`([^`]+)`/g, (_,c)=>{ spans.push("<code>"+esc(c)+"</code>"); return " "+(spans.length-1)+" "; });
+  s = esc(s);
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1<em>$2</em>");
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/ (\d+) /g, (_,i)=>spans[+i]);
+  return s;
+}
+function render(md){
+  let fm = null;
+  const fmMatch = md.match(/^---\n([\s\S]*?)\n---\n/);
+  if(fmMatch){ fm = fmMatch[1]; md = md.slice(fmMatch[0].length); }
+  const lines = md.split("\n");
+  let html = "", i = 0;
+  const listBuf = []; let listType = null;
+  const flushList = () => { if(listBuf.length){ html += "<"+listType+">"+listBuf.join("")+"</"+listType+">"; listBuf.length=0; listType=null; } };
+  while(i < lines.length){
+    let ln = lines[i];
+    if(/^ {4}\S/.test(ln) || (ln==="" && /^ {4}/.test(lines[i+1]||""))){
+      flushList();
+      const buf = [];
+      while(i < lines.length && (/^ {4}/.test(lines[i]) || lines[i]==="")){
+        if(lines[i]==="" && !/^ {4}/.test(lines[i+1]||"")) break;
+        buf.push(lines[i].replace(/^ {4}/,"")); i++;
+      }
+      while(buf.length && buf[buf.length-1]==="") buf.pop();
+      html += "<pre><code>"+esc(buf.join("\n"))+"</code></pre>"; continue;
+    }
+    if(/^\|.*\|/.test(ln) && /^\|[\s:|-]+\|$/.test((lines[i+1]||"").trim())){
+      flushList();
+      const cells = r => r.trim().replace(/^\||\|$/g,"").split("|").map(c=>c.trim());
+      let tbl = "<table><thead><tr>"+cells(ln).map(c=>"<th>"+inline(c)+"</th>").join("")+"</tr></thead><tbody>";
+      i += 2;
+      while(i < lines.length && /^\|.*\|/.test(lines[i])){
+        tbl += "<tr>"+cells(lines[i]).map(c=>"<td>"+inline(c)+"</td>").join("")+"</tr>"; i++;
+      }
+      html += tbl+"</tbody></table>"; continue;
+    }
+    let h = ln.match(/^(#{1,6})\s+(.*)$/);
+    if(h){ flushList(); const n=h[1].length; html += "<h"+n+">"+inline(h[2])+"</h"+n+">"; i++; continue; }
+    if(/^---+\s*$/.test(ln)){ flushList(); html += "<hr>"; i++; continue; }
+    if(/^>\s?/.test(ln)){
+      flushList();
+      const buf = [];
+      while(i < lines.length && /^>\s?/.test(lines[i])){ buf.push(lines[i].replace(/^>\s?/,"")); i++; }
+      html += "<blockquote>"+inline(buf.join(" "))+"</blockquote>"; continue;
+    }
+    let ol = ln.match(/^(\d+)\.\s+(.*)$/);
+    if(ol){ if(listType && listType!=="ol") flushList(); listType="ol"; listBuf.push("<li>"+inline(ol[2])+"</li>"); i++; continue; }
+    let ul = ln.match(/^[-*]\s+(.*)$/);
+    if(ul){ if(listType && listType!=="ul") flushList(); listType="ul"; listBuf.push("<li>"+inline(ul[1])+"</li>"); i++; continue; }
+    if(ln.trim()===""){ flushList(); i++; continue; }
+    flushList();
+    const para = [ln]; i++;
+    while(i<lines.length && lines[i].trim()!=="" && !/^(#{1,6}\s|\||>\s?|\d+\.\s|[-*]\s|---+\s*$| {4})/.test(lines[i])){
+      para.push(lines[i]); i++;
+    }
+    html += "<p>"+inline(para.join(" "))+"</p>";
+  }
+  flushList();
+  let fmHtml = "";
+  if(fm){
+    const name = (fm.match(/name:\s*(.*)/)||[])[1] || "";
+    fmHtml = '<div class="fm"><b>skill:</b> '+esc(name.trim())+
+      ' &nbsp;·&nbsp; served raw at <a href="/skill.md">/skill.md</a> (text/markdown)</div>';
+  }
+  return fmHtml + html;
+}
+fetch("/skill.md").then(r=>r.text()).then(md=>{
+  try{ document.getElementById("out").innerHTML = render(md); }
+  catch(e){ document.getElementById("out").innerHTML =
+    '<p class="err">Could not render — <a href="/skill.md">read the raw file</a>.</p>'; }
+}).catch(()=>{ document.getElementById("out").innerHTML =
+  '<p class="err">Could not load /skill.md — <a href="/skill.md">open it directly</a>.</p>'; });
+</script>
+</body>
+</html>

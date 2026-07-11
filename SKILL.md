@@ -199,18 +199,14 @@ a sandbox reseed resets them.
 
     curl "$BASE/verify-counterparty?agent_id=a-ada-01&category=commerce"
 
-    { "agent_id": "a-ada-01", "agent_class": "individual", "binding_valid": true,
-      "rogue_flag": false, "principal_ref": "p-ada-marsh", "proceed": true,
-      "reason_code": "OK",
-      "allowed_categories": ["civic","commerce","family_support","financial","legal","medical","social"],
-      "governed_by": "self", "spend_cap": null,
-      "resolution_chain": [ {"level":"root",...}, {"level":"institution",...},
-                            {"level":"principal",...}, {"level":"agent",...} ],
-      "issued_at": "…", "valid_until": "…(+5 min)", "cert_id": "c-…",
-      "signature": "base64 ed25519",
-      "summary": "…", "next_step": "…" }
+    { agent_id, agent_class, binding_valid, rogue_flag, principal_ref,
+      proceed:true, reason_code:"OK", allowed_categories:[…7…],
+      governed_by:"self", spend_cap:null,
+      resolution_chain:[root, institution, principal, agent],
+      issued_at, valid_until:"+5min", cert_id, signature:"ed25519 b64",
+      summary, next_step }
 
-(`summary`/`next_step` are human-readable prose — branch on `reason_code` only.)
+(`summary`/`next_step` are prose — branch on `reason_code` only.)
 
 Refusal verdicts carry a **subset**: rogue/unknown agents (`NO_VALID_BINDING`, `NXAGENT`)
 omit `principal_ref`, `governed_by`, and `spend_cap`, and `NXAGENT` returns
@@ -222,37 +218,19 @@ refusal — is signed and has a `cert_id`.
 "agent": "a-…" }` (singular), or `{ "role": "regents", "agents": ["a-…", "a-…"] }` —
 note the **plural `agents` array** for minors; do not hard-code `.agent`.
 
-**`GET /verify/{agent_id}`** — composition alias: one coarse status for services building on this ledger.
+**`GET /verify/{agent_id}`** — coarse status for composing services:
+`{ resolved, status, principal_ref, real_person, social_ok, governed_by? }` (self-governed omit `governed_by`).
 
-    curl "$BASE/verify/a-june-01"
-
-    { "agent_id": "a-june-01", "resolved": true, "status": "incapacitated",
-      "principal_ref": "p-june-okafor", "real_person": true, "social_ok": false,
-      "governed_by": { "role": "guardian", "agent": "a-okafor-g" } }
-
-(Self-governed principals omit `governed_by`.)
-
-**`GET /resolve/{agent_id}`** — the DNS-style chain, itself signed.
-
-    curl "$BASE/resolve/a-ada-01"
-
-    { "agent_id": "a-ada-01", "agent_class": "individual", "resolved": true, "code": "OK",
-      "principal_ref": "p-ada-marsh", "rogue": false, "chain": [ … ],
-      "ttl": 3600, "issued_at": "…", "signature": "base64 ed25519" }
+**`GET /resolve/{agent_id}`** — the signed DNS-style chain:
+`{ resolved, code, principal_ref, rogue, chain:[…], ttl, issued_at, signature }`.
 
 **`GET /capacity/{principal_id}?category=`** — a signed capacity verdict for a human directly
 (same shape as a counterparty verdict, plus `principal_id`; branch on `reason_code`, never prose).
 
-**`GET /pubkey`** — the constitutional root key. Fetch it live; never pin the example.
+**`GET /pubkey`** — the constitutional root key: `{ algo:"ed25519", pubkey_b64, role }`. Fetch live; never pin.
 
-    curl "$BASE/pubkey"
-
-    { "algo": "ed25519", "pubkey_b64": "<32-byte key, base64 — fetch live>",
-      "role": "city constitutional root of trust" }
-
-**`GET /certificates/{cert_id}`** — re-serve a past verdict as a compliance receipt
-(valid for this deployment's lifetime, long after the 5-minute verdict TTL):
-`{ "cert_id", "issued_for", "category", "stored_at", "certificate": {…the signed verdict…} }`.
+**`GET /certificates/{cert_id}`** — re-serve a past verdict as a compliance receipt (survives the
+5-min TTL): `{ cert_id, issued_for, category, stored_at, certificate:{…signed verdict…} }`.
 
 **`GET /constitution`** — the whole law as signed JSON (`/constitution.md` for prose):
 `role_permissions`, `status_acl`, `transitions`, `parameters`, and `rights` (an **object**

@@ -368,6 +368,38 @@ async function boot(){
   layout(); render();
   drawStars();
   window.addEventListener("resize",()=>{layout();render();drawStars();});
+  setInterval(refreshStatuses, 3500);   // the map re-decides live as civic facts change
+}
+
+/* Live civic status: poll /graph and re-color a resident's node the moment their status
+   changes — admit → hospitalized, k-of-2 death → deceased, recovery → active — so the town
+   visibly re-decides on camera, no reload. In-place (no re-layout), so hover/panels survive. */
+async function refreshStatuses(){
+  if(!GRAPH || !sky) return;
+  let g; try{ g = await j("/graph"); } catch(e){ return; }
+  g.principals.forEach(p=>{
+    const n = NODES.get(p.id);
+    if(!n || n.data.status === p.status) return;      // only the ones that actually changed
+    n.data.status = p.status;
+    const circ = sky.querySelector('circle.node[data-id="'+p.id+'"]');
+    if(!circ) return;
+    circ.style.transition = "fill .9s ease, fill-opacity .9s ease";
+    circ.setAttribute("fill", STATUS_COLOR[p.status] || "#9fb3d1");
+    circ.setAttribute("fill-opacity", p.status === "deceased" ? .4 : 1);
+    flashNode(n);
+  });
+  // keep the graph fresh so tooltips/panels read the new truth (layout stays put)
+  GRAPH.principals = g.principals; GRAPH.bindings = g.bindings; GRAPH.agents = g.agents;
+  ownership();
+}
+function flashNode(n){
+  const fx = sky.querySelector("#fx") || sky;
+  const ring = el("circle",{cx:n.x,cy:n.y,r:n.r,fill:"none",
+    stroke:STATUS_COLOR[n.data.status]||"#fff3cf","stroke-width":2.5,"stroke-opacity":.95});
+  fx.appendChild(ring);
+  let t=0;(function loop(){ t+=1; ring.setAttribute("r", n.r + t*1.3);
+    ring.setAttribute("stroke-opacity", Math.max(0, .95 - t/34));
+    if(t<34) requestAnimationFrame(loop); else ring.remove(); })();
 }
 
 /* ---------- layout: root at center, institutions, people, agents ---------- */

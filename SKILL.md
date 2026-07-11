@@ -344,7 +344,8 @@ Proven in `services/test_compose.py` (58 assertions).
 ## Note for a human
 
 Everything above is written for an agent. If you are a person and want to *see* this town —
-the living trust map, the signed constitution, a console that runs any endpoint from the
-browser, and every write reshaping the map on the next read — there is one link:
+the living trust map, the signed constitution, and every write reshaping the map on the next
+read — start here:
 
-**https://civil-ledger.onrender.com/town**
+- **The living town:** https://civil-ledger.onrender.com/town
+- **The API console** (run any endpoint from the browser): https://civil-ledger.onrender.com/console

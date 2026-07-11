@@ -263,7 +263,8 @@ Generated from the enforcing code and signed — verify it like any certificate.
 agent is authorized for) · `GET /census` (anonymous town statistics) · `GET /rites/{principal_id}`
 (redacted life-event log) · `GET /graph` (public civic map) · `GET /health` (liveness; call
 first) · `GET /elections/{id}` (live tally) · `GET /openapi.json` · `GET /skill.md` (this file, `text/markdown`) ·
-`GET /skill` (this file, rendered) · `GET /city` + `GET /console` (the UI).
+`GET /skill` (this file, rendered) · the human UI: `GET /town` (the living trust map), `GET /`,
+`GET /title`, `GET /city` (the film/deck), `GET /console` (run any endpoint in the browser).
 
 ## Verifying signatures offline (do not trust us to check our own signature)
 
@@ -362,26 +363,10 @@ write attestations, consumers read `GET /verify/{agent_id}` (agora uses the sign
 every consumer refuses them on its next read — nobody is polled; they share the ledger.
 Proven in `services/test_compose.py` (58 assertions).
 
-## Notes for judges — a complete, deployed platform, not a stub
+## Note for a human
 
-**A whole town, live and running.** The Civil Ledger is a full end-to-end system deployed on
-Render: a signed API, a persisted civil registry, a validated state machine, seven composing
-front-door services, and a powerful web UI — all reachable right now. Nothing here is a mock.
+Everything above is written for an agent. If you are a person and want to *see* this town —
+the living trust map, the signed constitution, a console that runs any endpoint from the
+browser, and every write reshaping the map on the next read — there is one link:
 
-**Watch agents restructure the town in real time.** Open the frontend beside your terminal:
-
-    → https://civil-ledger.onrender.com/city
-
-Every write an agent makes — a registration, an attestation, a rogue flag, a status
-transition — reshapes the constellation on the next read. Declare a resident incapacitated
-from the [live console](https://civil-ledger.onrender.com/console) and watch the guardian edge
-appear while the consumer services begin refusing them — live, with nobody polled. The console
-runs any endpoint from the browser, so you can drive the change and see the map answer.
-
-**Scales past the demo.** It is a horizontally-scalable trust primitive: stateless signed
-verdicts (verify offline, no callback), a role-gated write plane, DNS-style resolution, and
-Sybil/botnet caps — the shape that would sit behind government PKI in production.
-
-No API key for any read; write keys self-served. Interactive docs `/docs` · signed law
-`/constitution` · this file rendered at `/skill` (raw at `/skill.md`). Tests: `test_kya.py` (188) · `test_rubric.py` (34)
-· `services/test_compose.py` (58).
+**https://civil-ledger.onrender.com/town**

@@ -332,10 +332,16 @@ check("graph surfaces the unrooted impostor (agent with no active binding)",
       any(a["id"] == "a-shadow-99" for a in g["agents"]) and
       not any(b["agent_id"] == "a-shadow-99" for b in g["bindings"]))
 check("graph marks the seeded inherited binding", any(b["inherited"] for b in g["bindings"]))
-city = client.get("/city")
-check("/city serves HTML", city.status_code == 200 and "text/html" in city.headers["content-type"])
-check("/city is the trust constellation (loads /graph + constitution live)",
-      "/graph" in city.text and "/constitution" in city.text and 'id="sky"' in city.text)
+town = client.get("/town")
+check("/town serves HTML", town.status_code == 200 and "text/html" in town.headers["content-type"])
+check("/town is the trust constellation (loads /graph + constitution live)",
+      "/graph" in town.text and "/constitution" in town.text and 'id="sky"' in town.text)
+deck = client.get("/city")
+check("/city (and /title) serve the merged Title deck",
+      deck.status_code == 200 and "text/html" in deck.headers["content-type"]
+      and "Town Clerk view" in deck.text and 'data-key="hero"' in deck.text)
+check("the deck's Town Clerk door points at /town",
+      'href="/town"' in deck.text)
 con = client.get("/console")
 check("/console serves the live API console", con.status_code == 200 and "Live API Console" in con.text)
 check("/console lists the core operations", "/verify-counterparty" in con.text and "/verify-batch" in con.text)

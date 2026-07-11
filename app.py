@@ -898,28 +898,35 @@ def town_graph():
         } for r in binds],
     }
 
-@app.get("/city")
-def city_ui():
-    """The human-facing 'trust constellation' — read the constitution, see how every
-    agent roots to a human/corp/institution, and watch signed verdicts live. Served
-    same-origin so it calls the real API (/graph, /constitution, /verify-counterparty)."""
-    path = os.path.join(os.path.dirname(__file__), "city.html")
+def _serve_html(filename: str) -> HTMLResponse:
+    path = os.path.join(os.path.dirname(__file__), filename)
     if os.path.exists(path):
         with open(path) as f:
             return HTMLResponse(f.read())
-    return HTMLResponse("<h1>city.html not bundled</h1>", status_code=404)
+    return HTMLResponse(f"<h1>{filename} not bundled</h1>", status_code=404)
 
+# The merged front door — the Title slider deck. One page at /title, /city, and / (for
+# browsers). The cinematic hero climaxes in a live Certificate-of-Registration resolve, and
+# a persistent "Town Clerk view →" carries the visitor into the living map at /town.
 @app.get("/title")
 def title_ui():
-    """The hero landing — an agent's Title (Certificate of Registration) as a civic object.
-    Renders real signed records instantly, then re-verifies live same-origin: point at any
-    agent and watch one signed call resolve it to its human and their standing to act, or
-    stamp it REFUSED · NXAGENT. The whole thesis in one gesture."""
-    path = os.path.join(os.path.dirname(__file__), "title.html")
-    if os.path.exists(path):
-        with open(path) as f:
-            return HTMLResponse(f.read())
-    return HTMLResponse("<h1>title.html not bundled</h1>", status_code=404)
+    """Hero deck: an agent's Title (Certificate of Registration) as a civic object, rendered
+    from real signed records and re-verified live — point at any agent and one signed call
+    resolves it to its human and their standing to act, or stamps it REFUSED · NXAGENT."""
+    return _serve_html("title.html")
+
+@app.get("/city")
+def city_ui():
+    """Alias of the merged front door (the Title deck). The living trust-constellation map
+    it used to serve now lives at /town, reachable from the deck's 'Town Clerk view'."""
+    return _serve_html("title.html")
+
+@app.get("/town")
+def town_ui():
+    """The living 'trust constellation' — the Town Clerk's map. Tap the golden seal to read
+    the Constitution, tap anyone to see how they root to a human/corp/institution, and watch
+    signed verdicts re-decide live. Same-origin, so it calls the real API."""
+    return _serve_html("city.html")
 
 @app.get("/console")
 def api_console():
@@ -1513,13 +1520,18 @@ def skill_rendered():
     return HTMLResponse("<h1>skill.html not bundled</h1>", status_code=404)
 
 @app.get("/")
-def root():
-    return {
+def root(request: Request):
+    # Content negotiation: a browser (Accept: text/html) lands on the merged Title deck; an
+    # agent or curl gets the machine-readable service card and is pointed at /skill.md.
+    if "text/html" in request.headers.get("accept", ""):
+        return _serve_html("title.html")
+    return JSONResponse({
         "service": "KYA — Know Your Agent · The Civil Ledger",
         "tagline": "KYC for the agent economy",
         "read": "GET /skill.md for the full agent guide",
+        "human_view": "GET / in a browser, or /town for the living map",
         "root_pubkey": ROOT_PUB_B64,
-    }
+    })
 
 # --------------------------------------------------------------------------- #
 #  Boot                                                                        #

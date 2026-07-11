@@ -278,8 +278,8 @@
 </div>
 
 <header>
-  <div class="brand">Alford <small>· The Civil Ledger</small>
-    <div class="tagline">The trust layer for the Internet of AI Agents</div>
+  <div class="brand"><a href="/" style="color:inherit;text-decoration:none" title="back to the opening">Alford <small>· The Civil Ledger</small></a>
+    <div class="tagline">The trust layer for the Internet of AI Agents · <a href="/" style="color:var(--gold-dim);text-decoration:none">‹ intro</a></div>
   </div>
   <a class="consolelink" href="/console" target="_blank" rel="noopener" title="open the live API console in a new tab">⌘ API console ↗</a>
   <div class="rootchip datechip" id="datechip" title="Alford's civic calendar. Day and month come from the ledger's own clock — every verdict is stamped and expires against it.">
@@ -943,12 +943,18 @@ function applyLens(){
 }
 
 /* ---------- starfield ---------- */
-/* ---------- intro overlay (shows on every load) ---------- */
+/* ---------- intro overlay ---------- */
 (function(){
   const enter=()=>document.getElementById("intro").classList.add("gone");
   document.getElementById("enter").addEventListener("click",enter);
   document.getElementById("intro").addEventListener("click",e=>{ if(e.target.id==="intro") enter(); });
   document.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key==="Escape") enter(); });
+  // Reached from the Title deck's "Town Clerk view" (/town, or #map): the deck was the
+  // intro, so skip straight to the living map.
+  if(/\/town\/?$/.test(location.pathname)||location.hash==="#map"){
+    document.getElementById("prelude").classList.add("gone");
+    document.getElementById("intro").classList.add("gone");
+  }
 })();
 
 function drawStars(){

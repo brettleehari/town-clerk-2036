@@ -253,6 +253,70 @@ def explain(payload: dict, category: Optional[str] = None) -> dict:
         out["category"] = category          # the receipt names what it authorized
     return out
 
+# --------------------------------------------------------------------------- #
+#  Narrative envelope: meaning fields so a consuming agent can explain a result #
+#  to a human without inventing anything. All prose derives from _GUIDANCE —    #
+#  the same table that backs /explain/{code} — so it can never drift from law.  #
+# --------------------------------------------------------------------------- #
+
+def meaning(reason_code: str) -> tuple:
+    """(summary, next_step) for a reason_code, from the one source of verdict prose."""
+    return _GUIDANCE.get(reason_code, ("Do not transact.", "Refuse and re-verify later."))
+
+def narrate_batch(verdicts: list, category: Optional[str]) -> dict:
+    """Collection-level meaning for a screening run: a headline, refusals grouped by reason,
+    and a takeaway composed from THIS result set — it never claims impostors when there were
+    none. Derived purely from the verdicts; introduces no new fact about any principal."""
+    refused = [v for v in verdicts if not v.get("proceed")]
+    proceed = len(verdicts) - len(refused)
+    by_reason: dict[str, list] = {}
+    for v in refused:
+        by_reason.setdefault(v.get("reason_code", "REFUSED"), []).append(v.get("agent_id"))
+    cat = f"`{category}`" if category else "any category"
+    n = len(verdicts)
+    headline = (f"{n} counterpart{'y' if n == 1 else 'ies'} screened for {cat}. "
+                f"{proceed} may proceed, {len(refused)} refused.")
+    impostors = by_reason.get("NO_VALID_BINDING", []) + by_reason.get("NXAGENT", [])
+    flagged = by_reason.get("ROGUE_FLAGGED", [])
+    if impostors:
+        m = len(impostors)
+        verb = "represents" if m == 1 else "represent"
+        takeaway = (f"{m} of these {n} agents {verb} no human at all. Without this call you "
+                    f"would have transacted with {'it' if m == 1 else 'them'}.")
+    elif flagged:
+        takeaway = (f"{len(flagged)} of these {n} are police-flagged rogues, refused town-wide — "
+                    f"this call kept them out.")
+    elif refused:
+        takeaway = (f"{len(refused)} of {n} were refused ({', '.join(sorted(by_reason))}); the "
+                    f"ledger caught each before value moved.")
+    else:
+        takeaway = f"All {n} resolve to real principals cleared for {cat} — screened before you dealt."
+    return {"headline": headline, "refusals_by_reason": by_reason, "takeaway": takeaway}
+
+def resolve_summary(agent_id: str, res: dict, principal_name: Optional[str] = None) -> str:
+    """The authority chain, in one plain sentence. States personhood, never private status."""
+    if not res.get("resolved"):
+        if res.get("code") == "NXAGENT":
+            return f"{agent_id} does not exist in the town — no agent of that id was ever registered."
+        return f"{agent_id} exists but resolves to no principal — it represents nobody."
+    if res.get("rogue"):
+        return f"{agent_id} resolves, but police have flagged it — the town refuses it everywhere."
+    auth = next((n.get("authority") for n in (res.get("chain") or [])
+                 if n.get("level") == "institution"), "an institution")
+    if res.get("inherited"):
+        return (f"{agent_id} now resolves through the {auth} to an estate under inheritance, "
+                f"not the original principal.")
+    who = principal_name or res.get("principal_ref") or "a principal"
+    return f"{agent_id} resolves through the {auth} to {who}, a registered principal of Alford."
+
+def cert_summary(agent_id: str, category: Optional[str], proceed: bool,
+                 reason_code: str, stored_at: str) -> str:
+    """One-line compliance-receipt narration for a stored verdict."""
+    verb = "cleared" if proceed else "refused"
+    when = (stored_at or "")[:10]
+    return (f"Compliance receipt: on {when} this ledger {verb} {agent_id} for "
+            f"{category or 'a category'} ({reason_code}). Verify against GET /pubkey.")
+
 def sign_verdict(payload: dict, category: Optional[str] = None) -> dict:
     """Every proceed/refuse verdict: explain it, then sign the explanation with it."""
     return sign_payload(explain(payload, category))
@@ -861,14 +925,47 @@ app = FastAPI(title="KYA — Know Your Agent · The Civil Ledger", version="1.0.
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
 
+class CivicError(HTTPException):
+    """An HTTPException that explains itself: carries error/reason/fix so an agent can recover
+    instead of guessing. `detail` is preserved for backward compatibility."""
+    def __init__(self, status_code: int, error: str, reason: str, fix: str, detail: str = None):
+        super().__init__(status_code=status_code, detail=detail if detail is not None else reason)
+        self.error, self.reason, self.fix = error, reason, fix
+
+# A 4xx that just says "403" makes an agent stall; one that says what and how lets it recover.
+_ERR_GENERIC = {
+    400: ("BAD_REQUEST",   "Check the request shape against SKILL.md or GET /start."),
+    401: ("UNAUTHORIZED",  "Provide a valid X-API-Key — self-serve one via POST /institutions/register."),
+    403: ("FORBIDDEN",     "Use a key whose role is permitted this action; see /constitution role_permissions."),
+    404: ("NOT_FOUND",     "Check the id; list valid ones via GET /cast, /census, or /graph."),
+    409: ("CONFLICT",      "Resolve the conflicting state, then retry."),
+}
+
 @app.exception_handler(RequestValidationError)
 async def _malformed_request(request: Request, exc: RequestValidationError):
     # SKILL.md promises `400 malformed` for bad input; FastAPI defaults to 422. Normalize
     # so the documented error table is the truth, and never leak a raw stack trace.
     errors = [{"loc": e.get("loc"), "msg": e.get("msg"), "type": e.get("type")}
               for e in exc.errors()]
-    return JSONResponse(status_code=400,
-                        content={"detail": "malformed request", "errors": errors})
+    return JSONResponse(status_code=400, content={
+        "detail": "malformed request", "errors": errors,
+        "error": "MALFORMED_REQUEST",
+        "reason": "The request body or query did not match the endpoint's schema.",
+        "fix": "Fix the fields named in `errors`; see the shape in SKILL.md or GET /start."})
+
+@app.exception_handler(HTTPException)
+async def _self_explaining_error(request: Request, exc: HTTPException):
+    # Every 4xx/5xx we raise carries error/reason/fix alongside the original `detail`, so an
+    # agent can recover. CivicError supplies a tailored fix; others get a per-status default.
+    detail = exc.detail
+    if isinstance(exc, CivicError):
+        body = {"detail": detail, "error": exc.error, "reason": exc.reason, "fix": exc.fix}
+    else:
+        code, fix = _ERR_GENERIC.get(exc.status_code, ("ERROR", "See SKILL.md or GET /start."))
+        body = {"detail": detail, "error": code,
+                "reason": detail if isinstance(detail, str) else str(detail), "fix": fix}
+    return JSONResponse(status_code=exc.status_code, content=body,
+                        headers=getattr(exc, "headers", None) or None)
 
 def require_role(x_api_key: Optional[str], role: str) -> sqlite3.Row:
     if not x_api_key:
@@ -947,7 +1044,15 @@ def explain_code(reason_code: str):
 @app.get("/resolve/{agent_id}")
 def resolve(agent_id: str):
     """DNS-style resolution of an agent to its principal, with the authority chain."""
-    return resolve_agent(agent_id)
+    res = resolve_agent(agent_id)
+    name = None
+    ref = res.get("principal_ref")
+    if ref:
+        with db() as c:
+            row = c.execute("SELECT name FROM principals WHERE id=?", (ref,)).fetchone()
+        name = row["name"] if row else None
+    res["summary"] = resolve_summary(agent_id, res, name)
+    return res
 
 @app.get("/verify/{agent_id}")
 def verify_simple(agent_id: str):
@@ -959,24 +1064,39 @@ def verify_simple(agent_id: str):
     res = resolve_agent(agent_id)
     if not res["resolved"]:
         # NXAGENT (no such agent) or NO_VALID_BINDING (exists, ties to no human) -> orphaned
+        s, nx = meaning(res["code"])
         return {"agent_id": agent_id, "resolved": False, "status": "orphaned",
-                "reason_code": res["code"], "real_person": False, "social_ok": False}
+                "reason_code": res["code"], "real_person": False, "social_ok": False,
+                "summary": s, "next_step": nx}
     if res.get("rogue"):
+        s, nx = meaning("ROGUE_FLAGGED")
         return {"agent_id": agent_id, "resolved": True, "status": "rogue",
-                "reason_code": "ROGUE_FLAGGED", "real_person": False, "social_ok": False}
+                "reason_code": "ROGUE_FLAGGED", "real_person": False, "social_ok": False,
+                "summary": s, "next_step": nx}
     ref = res["principal_ref"]
     with db() as c:
         p = c.execute("SELECT * FROM principals WHERE id=?", (ref,)).fetchone()
     if p is None:
         return {"agent_id": agent_id, "resolved": True, "status": "corporate",
-                "principal_ref": ref, "real_person": False, "social_ok": False}
+                "principal_ref": ref, "real_person": False, "social_ok": False,
+                "summary": "This agent resolves to a business, not a civil person; it transacts "
+                           "freely except in estate matters.",
+                "next_step": "Proceed for non-estate dealings; use /verify-counterparty for a "
+                             "signed, category-scoped verdict."}
     if res.get("inherited"):
         return {"agent_id": agent_id, "resolved": True, "status": "inherited_estate",
-                "principal_ref": ref, "real_person": False, "social_ok": False}
+                "principal_ref": ref, "real_person": False, "social_ok": False,
+                "summary": "This agent now serves an estate under inheritance, not a living person.",
+                "next_step": "Treat it as an estate instrument; only estate dealings are appropriate."}
     status = p["status"]
     social_ok = "social" in STATUS_ACL.get(status, set())
     out = {"agent_id": agent_id, "resolved": True, "status": status,
-           "principal_ref": ref, "real_person": True, "social_ok": social_ok}
+           "principal_ref": ref, "real_person": True, "social_ok": social_ok,
+           "summary": ("This agent resolves through the ledger to a real, accountable resident of "
+                       "Alford. " + ("They may meet in person." if social_ok
+                                     else "They may not arrange an in-person meeting.")),
+           "next_step": ("Safe to treat as a real person; call /verify-counterparty for a "
+                         "category-scoped signed verdict before value moves.")}
     cap = capacity_for_principal(p)
     if cap["governed_by"] != "self":
         out["governed_by"] = cap["governed_by"]   # guardian/regents/executor, for care & babysit
@@ -997,6 +1117,7 @@ def verify_cp(agent_id: str, category: Optional[str] = None):
 class BatchIn(BaseModel):
     agent_ids: list[str]
     category: Optional[str] = None
+    categories: Optional[list] = None      # a common wrong guess — trapped with a self-explaining error
 
 MAX_BATCH = 100
 
@@ -1004,12 +1125,21 @@ MAX_BATCH = 100
 def verify_batch(body: BatchIn):
     """Screen many counterparties in one signed call — a storefront vetting a whole
     order book, or an agent triaging its inbox. Each verdict is an independent signed
-    cert (and a stored receipt); the summary is for triage, the certs are the proof."""
+    cert (and a stored receipt) with its own summary/next_step; the envelope (headline,
+    refusals_by_reason, takeaway) is for triage, the certs are the proof."""
+    if body.categories is not None:
+        raise CivicError(400, "SHARED_CATEGORY_ONLY",
+                         "verify-batch applies one shared category to every agent_id in the request.",
+                         "Send one `category` (singular) per call. For mixed categories, call "
+                         "verify-batch once per category.")
     _check_category(body.category)
     if not body.agent_ids:
-        raise HTTPException(400, "agent_ids must be a non-empty list")
+        raise CivicError(400, "EMPTY_BATCH", "agent_ids must be a non-empty list.",
+                         "Pass at least one agent_id in `agent_ids`. Find ids via GET /cast.")
     if len(body.agent_ids) > MAX_BATCH:
-        raise HTTPException(400, f"batch too large: {len(body.agent_ids)} > max {MAX_BATCH}")
+        raise CivicError(400, "BATCH_TOO_LARGE",
+                         f"batch too large: {len(body.agent_ids)} > max {MAX_BATCH}.",
+                         f"Split into calls of at most {MAX_BATCH} agent_ids.")
     verdicts = [store_cert(verify_counterparty(a, body.category), body.category)
                 for a in body.agent_ids]
     proceed = sum(1 for v in verdicts if v.get("proceed"))
@@ -1017,6 +1147,7 @@ def verify_batch(body: BatchIn):
         "category": body.category,
         "count": len(verdicts),
         "summary": {"proceed": proceed, "refused": len(verdicts) - proceed},
+        **narrate_batch(verdicts, body.category),
         "verdicts": verdicts,
     }
 
@@ -1028,8 +1159,11 @@ def get_certificate(cert_id: str):
         row = c.execute("SELECT * FROM certificates WHERE id=?", (cert_id,)).fetchone()
     if not row:
         raise HTTPException(404, "unknown certificate id")
+    cert = json.loads(row["payload"])
     return {"cert_id": cert_id, "issued_for": row["agent_id"], "category": row["category"],
-            "stored_at": row["created"], "certificate": json.loads(row["payload"])}
+            "stored_at": row["created"], "certificate": cert,
+            "summary": cert_summary(row["agent_id"], row["category"], bool(cert.get("proceed")),
+                                    cert.get("reason_code", ""), row["created"])}
 
 @app.get("/capacity/{principal_id}")
 def capacity(principal_id: str, category: Optional[str] = None):
@@ -1051,10 +1185,15 @@ def census():
         agents = c.execute("SELECT COUNT(*) n FROM agents").fetchone()["n"]
         rogue = c.execute("SELECT COUNT(*) n FROM agents WHERE rogue=1").fetchone()["n"]
         insts = c.execute("SELECT role, COUNT(*) n FROM institutions GROUP BY role").fetchall()
+    by_status = {r["status"]: r["n"] for r in rows}
+    principals = sum(by_status.values())
     return {
-        "principals_by_status": {r["status"]: r["n"] for r in rows},
+        "principals_by_status": by_status,
         "agents_total": agents, "agents_rogue": rogue,
         "institutions": {r["role"]: r["n"] for r in insts},
+        "headline": f"{agents} agents, {rogue} flagged rogue, across {principals} principals.",
+        "takeaway": (f"Every one of the {agents} agents is accountable to one of {principals} "
+                     f"principals; {rogue} flagged rogue and refused town-wide."),
     }
 
 @app.get("/graph")
@@ -1334,14 +1473,19 @@ def create_binding(body: BindingIn, x_api_key: str = Header(None)):
             n = c.execute("SELECT COUNT(*) n FROM bindings WHERE principal_id=? AND status='active'",
                           (body.principal_id,)).fetchone()["n"]
             if n >= MAX_AGENTS_PER_PRINCIPAL:
-                raise HTTPException(409, f"SPRAWL_LIMIT: principal already has {n} active agents "
-                                         f"(max {MAX_AGENTS_PER_PRINCIPAL})")
+                raise CivicError(409, "SPRAWL_LIMIT",
+                    f"SPRAWL_LIMIT: principal already has {n} active agents (max {MAX_AGENTS_PER_PRINCIPAL}).",
+                    "One principal may bind only so many agents — a Sybil/botnet brake. Revoke an "
+                    "existing binding (DELETE /bindings/{id}) before adding another.",
+                    detail=f"SPRAWL_LIMIT: principal already has {n} active agents (max {MAX_AGENTS_PER_PRINCIPAL})")
         else:
             n = c.execute("SELECT COUNT(*) n FROM bindings WHERE corporation_id=? AND status='active'",
                           (body.corporation_id,)).fetchone()["n"]
             if n >= MAX_AGENTS_PER_CORP:
-                raise HTTPException(409, f"SPRAWL_LIMIT: corporation already has {n} active agents "
-                                         f"(max {MAX_AGENTS_PER_CORP})")
+                raise CivicError(409, "SPRAWL_LIMIT",
+                    f"SPRAWL_LIMIT: corporation already has {n} active agents (max {MAX_AGENTS_PER_CORP}).",
+                    "This corporation has reached its agent quota. Revoke an existing binding before adding another.",
+                    detail=f"SPRAWL_LIMIT: corporation already has {n} active agents (max {MAX_AGENTS_PER_CORP})")
         bid = new_id("b")
         c.execute("INSERT INTO bindings (id,agent_id,principal_id,corporation_id,scope,status,issued_by,created) "
                   "VALUES (?,?,?,?,?,?,?,?)",
@@ -1410,7 +1554,9 @@ def attest(body: AttestIn, x_api_key: str = Header(None)):
     # Everything below acts on a PERSON. Without a principal_id the appointment branch would
     # UPDATE zero rows and still report success, so refuse loudly rather than silently no-op.
     if not body.principal_id:
-        raise HTTPException(400, f"principal_id required for event '{event}'")
+        raise CivicError(400, "MISSING_PRINCIPAL_ID",
+                         f"Event '{event}' acts on a person, so it needs the principal it applies to.",
+                         "Include `principal_id` in the body. Find principal ids via GET /cast or GET /graph.")
 
     # ---- guardian / executor appointment ----
     if event in ("appoint_guardian", "appoint_executor"):
@@ -1430,8 +1576,12 @@ def attest(body: AttestIn, x_api_key: str = Header(None)):
             raise HTTPException(404, "unknown principal")
         key = (p["status"], event)
         if key not in FSM:
-            raise HTTPException(409, f"illegal transition: {p['status']} --{event}--> ? "
-                                     f"(not permitted by the civil FSM)")
+            _msg = (f"illegal transition: {p['status']} --{event}--> ? "
+                    f"(not permitted by the civil FSM)")
+            raise CivicError(409, "ILLEGAL_TRANSITION", _msg,
+                             "The civil state machine does not allow this event from the current "
+                             "state. See the valid transitions at GET /constitution (`transitions`).",
+                             detail=_msg)
         to_status, required_role = FSM[key]
         if role != required_role:
             raise HTTPException(403, f"{role} may not perform '{event}' "

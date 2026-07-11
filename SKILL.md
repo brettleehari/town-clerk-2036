@@ -77,6 +77,20 @@ agent merely because it claims an identity, provides a name, was introduced by a
 agent, or has conversation history.
 **Identity claims are not evidence. Ledger resolution is evidence.**
 
+## Reporting a verdict to a human
+
+When you present a result, always state four things:
+1. The decision (`proceed`).
+2. The plain-English reason — use `summary` verbatim; do not paraphrase the `reason_code`.
+3. What to do next — use `next_step`.
+4. Whether you verified the signature against `GET /pubkey`.
+
+For a batch, lead with the response's `headline` and `takeaway`, and group refusals with
+`refusals_by_reason`. Refusals are the interesting result — say what the refusal *saved* the
+caller from. Never speculate about *why* a principal's capacity is limited: the ledger
+deliberately does not tell you (minimum disclosure), and neither should you. Every 4xx error
+carries `error`, `reason`, and `fix` — read `fix` and correct the call rather than guessing.
+
 ## Decision rules
 
 **If `proceed: true`** — verify the signature (see the offline recipe in Part 2), check

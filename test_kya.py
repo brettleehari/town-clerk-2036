@@ -549,5 +549,50 @@ _skills = [open("SKILL.md").read()] + [open(f"services/{s}/skill.md").read() for
           ["town-hall", "hospital-window", "dating", "babysit", "care-proxy", "hiring", "agora"]]
 check("mentioned in no skill.md", not any("reset-seed" in s for s in _skills))
 
+print("\n[28] Narrative envelope: meaning fields, minimum disclosure, self-explaining errors")
+# Batch envelope: per-verdict summary/next_step + collection headline/takeaway/refusals_by_reason.
+_b = client.post("/verify-batch", json={"agent_ids": ["a-ada-01", "a-shadow-99", "a-vane-exec"],
+                                        "category": "commerce"}).json()
+check("batch carries a headline", isinstance(_b.get("headline"), str) and _b["headline"])
+check("batch carries a takeaway", isinstance(_b.get("takeaway"), str) and _b["takeaway"])
+check("batch groups refusals by reason",
+      "a-shadow-99" in _b["refusals_by_reason"].get("NO_VALID_BINDING", []))
+check("every batch verdict has summary + next_step",
+      all(v.get("summary") and v.get("next_step") for v in _b["verdicts"]))
+check("takeaway is composed from THIS set (names the impostor consequence)",
+      "no human" in _b["takeaway"].lower())
+# Minimum disclosure: a CAPACITY_FROZEN meaning field must never leak the underlying status.
+_frozen = client.get("/verify-counterparty", params={"agent_id": "a-tam-01", "category": "financial"}).json()
+check("the frozen verdict is CAPACITY_FROZEN", _frozen["reason_code"] == "CAPACITY_FROZEN")
+_blob = (_frozen.get("summary", "") + " " + _frozen.get("next_step", "")).lower()
+check("CAPACITY_FROZEN meaning fields disclose no underlying status",
+      not any(w in _blob for w in ("coma", "comatose", "incapacitat", "hospital", "minor", "jail", "incarcerat")))
+# Single source: /explain and the on-verdict summary derive from one table.
+_expl = client.get("/explain/NO_VALID_BINDING").json()["meaning"]
+_verdict = client.get("/verify-counterparty", params={"agent_id": "a-shadow-99", "category": "commerce"}).json()
+check("/explain and the verdict summary share one source",
+      _expl == _verdict["summary"] and _verdict["reason_code"] == "NO_VALID_BINDING")
+# Coarse + resolution endpoints narrate too.
+check("/resolve carries a summary", bool(client.get("/resolve/a-ada-01").json().get("summary")))
+check("/verify carries summary + next_step",
+      all(client.get("/verify/a-ada-01").json().get(k) for k in ("summary", "next_step")))
+check("/census carries a headline", bool(client.get("/census").json().get("headline")))
+# Self-explaining 4xx from write endpoints: error + reason + fix, without dropping detail.
+_e = client.post("/verify-batch", json={"agent_ids": ["a-ada-01"], "categories": ["commerce", "legal"]})
+check("verify-batch mixed-category guess returns a self-explaining 400", _e.status_code == 400)
+check("...with error + reason + fix",
+      all(k in _e.json() for k in ("error", "reason", "fix")) and _e.json()["error"] == "SHARED_CATEGORY_ONLY")
+_w = client.post("/attestations", headers=HOSP, json={"principal_id": "p-ada-marsh", "event": "discharge"})
+check("an illegal transition (409) still exposes detail AND carries error/reason/fix",
+      _w.status_code == 409 and "detail" in _w.json()
+      and all(k in _w.json() for k in ("error", "reason", "fix")))
+# Additive only: the NEW collection envelope must not bloat the batch (>30% is a regression).
+# (Per-verdict summary/next_step predate this change — they ship on every signed verdict.)
+_full = client.post("/verify-batch", json={"agent_ids": ["a-ada-01"] * 6, "category": "commerce"}).json()
+_env_bytes = len(json.dumps({k: _full[k] for k in ("headline", "takeaway", "refusals_by_reason")}))
+_tot_bytes = len(json.dumps(_full))
+check("the collection envelope adds < 30% bytes to a 6-agent batch",
+      _env_bytes < 0.30 * _tot_bytes)
+
 print(f"\n==== {P} passed, {F} failed ====")
 raise SystemExit(1 if F else 0)

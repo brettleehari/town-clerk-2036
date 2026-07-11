@@ -25,7 +25,7 @@ GET https://civil-ledger.onrender.com/health
   "ok": true,
   "service": "KYA Civil Ledger",
   "town": "Alford, Massachusetts",
-  "time": "2026-07-10T14:28:01Z"
+  "time": "2036-07-11T02:09:23Z"
 }
 ```
 
@@ -40,7 +40,7 @@ GET https://civil-ledger.onrender.com/pubkey
 ```json
 {
   "algo": "ed25519",
-  "pubkey_b64": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw=",
+  "pubkey_b64": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40=",
   "role": "city constitutional root of trust"
 }
 ```
@@ -57,8 +57,11 @@ GET https://civil-ledger.onrender.com/skill.md
 ---
 name: town-ledger
 user-invocable: true
-description: Verifies the human or institution behind a counterparty agent and returns an Ed25519-signed proceed/refuse verdict scoped to a transaction category, catching impostors that resolve to no human and refusing principals who are deceased, incapacitated, incarcerated,
-… (19995 bytes total)
+description: >
+  The Town Clerk's office for a 2036 agent-native town, governed by a machine-readable,
+  signed constitution generated from the code that enforces it. Agents here are registered
+  assets — titled to a human or institution, quota-bounded, owner-revocable, inheri
+… (19144 bytes total)
 ```
 
 Machine-readable mirror of the same contract.
@@ -81,7 +84,7 @@ GET https://civil-ledger.onrender.com/openapi.json
       "get": {
         "summary": "Health",
         "operationId": "health_heal
-… (22614 bytes total)
+… (23295 bytes total)
 ```
 
 Permanent demo-video link: `302` to `VIDEO_URL`, else the bundled film, else this placeholder. It never 404s, so a submitted link never dies.
@@ -113,7 +116,7 @@ GET https://civil-ledger.onrender.com/constitution
   "title": "The Constitution of Alford, Massachusetts",
   "town": "Alford, Massachusetts",
   "version": "1.1.0",
-  "root_pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw=",
+  "root_pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40=",
   "preamble": "Every agent must resolve to a human or corporation through a chain of signing authorities rooted at the city root key. Institutions write civic facts; everyone else reads. A human's civil status governs what their agent may lawfully do. This document is generated from the code that enforces it and signed by the city root key.",
   "transaction_categories": [
     "financial",
@@ -172,9 +175,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-ada-01&cate
 ```json
 {
   "agent_id": "a-ada-01",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-32193a59",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-77336fb9",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -196,7 +199,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-ada-01&cate
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -220,7 +223,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-ada-01&cate
   "summary": "Proceed. This agent resolves to p-ada-marsh through 4 signing authorities, and may transact in `commerce`.",
   "next_step": "Verify `signature` against GET /pubkey, check `valid_until` is still in the future, then transact within `allowed_categories`.",
   "category": "commerce",
-  "signature": "d9klYSL21jfHo0QwxjBAs7hWUryugL2cz+/ipiLuv4Q5Y1i9U/+bT5Iey3uEtoGp+3At7s96OK6vKkAb6oIOCQ=="
+  "signature": "OjtUPSzDUQxPSnHVdvxDiIAse+VJedwi0emgjhaFmuhFo5zaDiMekDJrQF/zfqWJDCAwu/MGnqr/yf7h7XY+CQ=="
 }
 ```
 
@@ -235,9 +238,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-shadow-99&c
 ```json
 {
   "agent_id": "a-shadow-99",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-e3c3bab9",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-0f7b6bab",
   "agent_class": "individual",
   "binding_valid": false,
   "rogue_flag": false,
@@ -248,7 +251,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-shadow-99&c
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     }
   ],
   "summary": "Do not transact. This agent resolves to no human or corporation \u2014 it represents nobody.",
@@ -268,9 +271,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-june-01&cat
 ```json
 {
   "agent_id": "a-june-01",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-a22cae81",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-716b107c",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -290,7 +293,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-june-01&cat
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -319,9 +322,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-june-01&cat
 ```json
 {
   "agent_id": "a-june-01",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-27b638d5",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-ca75dbf0",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -341,7 +344,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-june-01&cat
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -371,9 +374,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-silas-01&ca
 ```json
 {
   "agent_id": "a-silas-01",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-ab2fb464",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-71aa8da6",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -392,7 +395,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-silas-01&ca
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -414,9 +417,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-marlow-01&c
 ```json
 {
   "agent_id": "a-marlow-01",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-338031ce",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-e9cc6c1b",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -433,7 +436,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-marlow-01&c
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -458,9 +461,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-edith-01&ca
 ```json
 {
   "agent_id": "a-edith-01",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-7cb3f936",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-b4d19670",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -474,14 +477,14 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-edith-01&ca
   "governed_by": {
     "role": "heir",
     "principal": "p-mara-vale",
-    "inherit_until": 1786285672
+    "inherit_until": 2101946952
   },
   "inherited": true,
   "resolution_chain": [
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -511,9 +514,9 @@ POST https://civil-ledger.onrender.com/verify-batch
   "verdicts": [
     {
       "agent_id": "a-ada-01",
-      "issued_at": "2026-07-10T14:28:01Z",
-      "valid_until": "2026-07-10T14:33:01Z",
-      "cert_id": "c-1c98cfbd",
+      "issued_at": "2036-07-11T02:09:23Z",
+      "valid_until": "2036-07-11T02:14:23Z",
+      "cert_id": "c-aadebc4e",
       "agent_class": "individual",
       "binding_valid": true,
       "rogue_flag": false,
@@ -535,7 +538,7 @@ POST https://civil-ledger.onrender.com/verify-batch
         {
           "level": "root",
           "authority": "city-root",
-          "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+          "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
         },
         {
           "level": "institution",
@@ -559,22 +562,22 @@ POST https://civil-ledger.onrender.com/verify
 Re-serve a past verdict as a compliance receipt, long after its 5-minute TTL lapses.
 
 ```http
-GET https://civil-ledger.onrender.com/certificates/c-d5daa324
+GET https://civil-ledger.onrender.com/certificates/c-aa5c9312
 ```
 
 `200`
 
 ```json
 {
-  "cert_id": "c-d5daa324",
+  "cert_id": "c-aa5c9312",
   "issued_for": "a-ada-01",
   "category": "commerce",
-  "stored_at": "2026-07-10T14:28:01Z",
+  "stored_at": "2036-07-11T02:09:23Z",
   "certificate": {
     "agent_id": "a-ada-01",
-    "issued_at": "2026-07-10T14:28:01Z",
-    "valid_until": "2026-07-10T14:33:01Z",
-    "cert_id": "c-d5daa324",
+    "issued_at": "2036-07-11T02:09:23Z",
+    "valid_until": "2036-07-11T02:14:23Z",
+    "cert_id": "c-aa5c9312",
     "agent_class": "individual",
     "binding_valid": true,
     "rogue_flag": false,
@@ -631,7 +634,7 @@ GET https://civil-ledger.onrender.com/resolve/a-ada-01
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     },
     {
       "level": "institution",
@@ -653,8 +656,8 @@ GET https://civil-ledger.onrender.com/resolve/a-ada-01
     }
   ],
   "ttl": 3600,
-  "issued_at": "2026-07-10T14:28:01Z",
-  "signature": "/zRdjMR8YiNGs0gVZ/9gR4Hzdk8ql2v5XLEaWzQYOpGP9AWVNdyO7V2JlQRUpeyl5uBN+TNA
+  "issued_at": "2036-07-11T02:09:23Z",
+  "signature": "f+isYQGx+E01RzhYbi208CIrqZVmHZdmLG5pedFMk0t3OlI+cRXwJpkWutumujX/skrMvCvN
 … (635 bytes total)
 ```
 
@@ -677,12 +680,12 @@ GET https://civil-ledger.onrender.com/resolve/a-shadow-99
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     }
   ],
   "ttl": 3600,
-  "issued_at": "2026-07-10T14:28:01Z",
-  "signature": "TwxGGdAvtpvz+VVP6TUw4j9FEtjq6FP+UWsf3UhfW1wI70rrF+1vsXVFU8Z1im0E4uYiAwqH9QQxPHwXVA8sDA=="
+  "issued_at": "2036-07-11T02:09:23Z",
+  "signature": "qULy0OhHs+lOzlegJEtRyKZMkghD3+u7aGiKvMKxFYZ/yyZq+vEZAtQ22ruYnDRwNpNVzzZrtU3069qi4+NFCQ=="
 }
 ```
 
@@ -710,9 +713,9 @@ GET https://civil-ledger.onrender.com/capacity/p-ada-marsh?category=financial
   ],
   "governed_by": "self",
   "spend_cap": null,
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-4ad40d0f",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-3dec55d8",
   "summary": "Proceed. p-ada-marsh has the civil capacity to transact in `financial`.",
   "next_step": "Verify `signature` against GET /pubkey, check `valid_until` is still in the future, th
 … (646 bytes total)
@@ -745,9 +748,9 @@ GET https://civil-ledger.onrender.com/capacity/p-tam-holt?category=commerce
     ]
   },
   "spend_cap": 50.0,
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-70b131e1",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-daa1b9ca",
   "summary": "Proceed. p-tam-holt has the civil capacity to transact in `commerce`. They are governed by a-holt-mom or a-holt-dad (regents), who acts on their behalf.",
   "next_step": "Address the request to a-ho
 … (804 bytes total)
@@ -773,7 +776,7 @@ GET https://civil-ledger.onrender.com/bindings/a-ada-01
     "issued_by": "inst-registrar",
     "inherit_until": null,
     "inherit_acl": null,
-    "created": "2026-07-10T14:27:52Z"
+    "created": "2036-07-11T02:09:12Z"
   }
 ]
 ```
@@ -824,7 +827,7 @@ GET https://civil-ledger.onrender.com/rites/p-june-okafor
     {
       "event": "birth",
       "by_role": "registrar",
-      "at": "2026-07-10T14:27:52Z"
+      "at": "2036-07-11T02:09:12Z"
     }
   ]
 }
@@ -841,7 +844,7 @@ GET https://civil-ledger.onrender.com/graph
 ```json
 {
   "town": "Alford, Massachusetts",
-  "root_pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw=",
+  "root_pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40=",
   "institutions": [
     {
       "id": "inst-registrar",
@@ -926,9 +929,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-nobody-xyz&
 ```json
 {
   "agent_id": "a-nobody-xyz",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-01f0e4a9",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-f37ea4ce",
   "agent_class": null,
   "binding_valid": false,
   "rogue_flag": false,
@@ -939,7 +942,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-nobody-xyz&
   "summary": "Do not transact. No agent with this id exists in the town.",
   "next_step": "Check the id. An agent that was never registered has no principal to stand behind it.",
   "category": "commerce",
-  "signature": "I7y+ISaFN6TbiSTiyou/nOqVWNNCBcIYAwNHYlrf3Un4PyV6RhLnZaQfat/WERfmpkhy9cxk4v5+HxZxOgh9DQ
+  "signature": "NXURVTLXZ4GFseBH8hOpG4fhhVrU47YfIa1Qfhe6xKJQQRPUb9b+h28RxRpoyagM4zHqCQ7uduECTD5OKfEZCQ
 … (564 bytes total)
 ```
 
@@ -998,9 +1001,9 @@ POST https://civil-ledger.onrender.com/institutions/register
 
 ```json
 {
-  "institution_id": "inst-02d09acd",
+  "institution_id": "inst-06a47ee6",
   "role": "police",
-  "api_key": "sk_f2d2b6468bb8c9d18703d90b941ab6a1",
+  "api_key": "sk_58bf1389cd11d6b024e8510cd3ef6517",
   "use": "send as header X-API-Key"
 }
 ```
@@ -1017,8 +1020,8 @@ POST https://civil-ledger.onrender.com/principals
 
 ```json
 {
-  "principal_id": "p-2ac778e6",
-  "principal_key": "pk_c94e2da2f9564ea25d571d1b",
+  "principal_id": "p-4a4f40b0",
+  "principal_key": "pk_3228730cdaccc46ec53d9457",
   "note": "principal_key is the human kill switch \u2014 keep it secret"
 }
 ```
@@ -1033,7 +1036,7 @@ POST https://civil-ledger.onrender.com/agents
 
 ```json
 {
-  "agent_id": "a-26494e18",
+  "agent_id": "a-cfc89ce0",
   "class": "individual"
 }
 ```
@@ -1050,7 +1053,7 @@ POST https://civil-ledger.onrender.com/corporations
 
 ```json
 {
-  "corporation_id": "corp-2ac8c96c"
+  "corporation_id": "corp-341d60d9"
 }
 ```
 
@@ -1059,14 +1062,14 @@ The binding is what makes an agent resolve to a human. Capped at `max_agents_per
 ```http
 POST https://civil-ledger.onrender.com/bindings
   -H 'X-API-Key: sk_seed_registrar'
-  -d '{"agent_id": "a-b7b27a6e", "principal_id": "p-a1609e84"}'
+  -d '{"agent_id": "a-f2144ccd", "principal_id": "p-f719bbd4"}'
 ```
 
 `200`
 
 ```json
 {
-  "binding_id": "b-231c95d9",
+  "binding_id": "b-de4fc910",
   "status": "active"
 }
 ```
@@ -1074,15 +1077,15 @@ POST https://civil-ledger.onrender.com/bindings
 **The human kill switch.** Instant self-revocation with the principal's own key — no institution, no process, no latency.
 
 ```http
-DELETE https://civil-ledger.onrender.com/bindings/b-231c95d9
-  -H 'X-Principal-Key: pk_a0a09a2de1d5d46afbf9c747'
+DELETE https://civil-ledger.onrender.com/bindings/b-de4fc910
+  -H 'X-Principal-Key: pk_dc2dbde70010301b350f6ff1'
 ```
 
 `200`
 
 ```json
 {
-  "binding_id": "b-231c95d9",
+  "binding_id": "b-de4fc910",
   "status": "revoked",
   "reason_code_for_readers": "BINDING_REVOKED"
 }
@@ -1091,17 +1094,17 @@ DELETE https://civil-ledger.onrender.com/bindings/b-231c95d9
 …and the agent immediately speaks for nobody.
 
 ```http
-GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-b7b27a6e
+GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-f2144ccd
 ```
 
 `200`
 
 ```json
 {
-  "agent_id": "a-b7b27a6e",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-1b6bcf9d",
+  "agent_id": "a-f2144ccd",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-c073d9cb",
   "agent_class": "individual",
   "binding_valid": false,
   "rogue_flag": false,
@@ -1112,7 +1115,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-b7b27a6e
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     }
   ],
   "summary": "Do not transact. This agent resolves to no human or corporation \u2014 it represents
@@ -1131,10 +1134,10 @@ POST https://civil-ledger.onrender.com/immigrate
 
 ```json
 {
-  "principal_id": "p-976e27e1",
-  "agent_id": "a-3136083d",
-  "binding_id": "b-0d18300d",
-  "principal_key": "pk_000a96c676feeb575f784f87",
+  "principal_id": "p-1771e15b",
+  "agent_id": "a-8edbf880",
+  "binding_id": "b-761cb185",
+  "principal_key": "pk_aa48df80ffec1d6f5c228819",
   "town": "Alford, Massachusetts",
   "note": "registered in Alford, Massachusetts; your agent may now be verified and transact"
 }
@@ -1152,10 +1155,10 @@ POST https://civil-ledger.onrender.com/births
 
 ```json
 {
-  "principal_id": "p-a3c74686",
-  "natal_agent_id": "a-c006605c",
-  "binding_id": "b-5dda4d7b",
-  "principal_key": "pk_279e71cdd735808b9489d907",
+  "principal_id": "p-24f7afdc",
+  "natal_agent_id": "a-7e144a60",
+  "binding_id": "b-2b5e9547",
+  "principal_key": "pk_8c7131a347e7222ffcbc1745",
   "status": "minor",
   "parental_controls": {
     "regents": [
@@ -1177,14 +1180,14 @@ POST https://civil-ledger.onrender.com/births
 ```http
 POST https://civil-ledger.onrender.com/attestations
   -H 'X-API-Key: sk_seed_registrar'
-  -d '{"principal_id": "p-d56e3db1", "event": "majority_handover"}'
+  -d '{"principal_id": "p-eb4e56c6", "event": "majority_handover"}'
 ```
 
 `200`
 
 ```json
 {
-  "principal_id": "p-d56e3db1",
+  "principal_id": "p-eb4e56c6",
   "status": "active",
   "event": "majority_handover"
 }
@@ -1194,7 +1197,7 @@ POST https://civil-ledger.onrender.com/attestations
 
 ```http
 POST https://civil-ledger.onrender.com/attestations
-  -H 'X-API-Key: sk_2bc6a6243feafb5405ebba8b91bcaec6'
+  -H 'X-API-Key: sk_83a29c4748982dfd4cbd8e17590c7779'
   -d '{"event": "flag_rogue", "detail": {"agent_id": "a-shadow-99"}}'
 ```
 
@@ -1219,9 +1222,9 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-shadow-99&c
 ```json
 {
   "agent_id": "a-shadow-99",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-8e52aa99",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-66d0c6b5",
   "agent_class": "individual",
   "binding_valid": false,
   "rogue_flag": true,
@@ -1232,7 +1235,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-shadow-99&c
     {
       "level": "root",
       "authority": "city-root",
-      "pubkey": "40L6MhnKWToc2eCboQHYPs1ozdSWNWG66fjCjNrxjjw="
+      "pubkey": "yxQ3/FKTFInImYgZeIJIMOdsegsUxpfcPEXrdA5rx40="
     }
   ],
   "summary": "Do not transact. Police have flagged this agent; the town refuses it everywhere.",
@@ -1244,7 +1247,7 @@ Restored.
 
 ```http
 POST https://civil-ledger.onrender.com/attestations
-  -H 'X-API-Key: sk_2bc6a6243feafb5405ebba8b91bcaec6'
+  -H 'X-API-Key: sk_83a29c4748982dfd4cbd8e17590c7779'
   -d '{"event": "clear_flag", "detail": {"agent_id": "a-shadow-99"}}'
 ```
 
@@ -1262,7 +1265,7 @@ A person-scoped event **without** `principal_id` is refused, rather than silentl
 
 ```http
 POST https://civil-ledger.onrender.com/attestations
-  -H 'X-API-Key: sk_2bc6a6243feafb5405ebba8b91bcaec6'
+  -H 'X-API-Key: sk_83a29c4748982dfd4cbd8e17590c7779'
   -d '{"event": "appoint_guardian", "detail": {"agent_id": "a-ada-01"}}'
 ```
 
@@ -1315,15 +1318,15 @@ Register a will while alive: at death the agent transfers to the heir for a term
 
 ```http
 POST https://civil-ledger.onrender.com/wills
-  -H 'X-Principal-Key: pk_0fd0e289e0bfa906e07ec3f6'
-  -d '{"principal_id": "p-020a7268", "heir_principal_id": "p-mara-vale", "inherit_days": 30, "categories": ["estate", "family_support"]}'
+  -H 'X-Principal-Key: pk_2d65e8352a1d51e7da568e09'
+  -d '{"principal_id": "p-53804aff", "heir_principal_id": "p-mara-vale", "inherit_days": 30, "categories": ["estate", "family_support"]}'
 ```
 
 `200`
 
 ```json
 {
-  "principal_id": "p-020a7268",
+  "principal_id": "p-53804aff",
   "will": {
     "heir_principal_id": "p-mara-vale",
     "inherit_days": 30,
@@ -1341,14 +1344,14 @@ One coroner is not enough — the k-of-2 threshold is unmet.
 ```http
 POST https://civil-ledger.onrender.com/attestations
   -H 'X-API-Key: sk_seed_coroner_a'
-  -d '{"principal_id": "p-020a7268", "event": "death"}'
+  -d '{"principal_id": "p-53804aff", "event": "death"}'
 ```
 
 `200`
 
 ```json
 {
-  "principal_id": "p-020a7268",
+  "principal_id": "p-53804aff",
   "event": "death_pending",
   "attestations": 1,
   "threshold": 2,
@@ -1361,19 +1364,19 @@ A **second, independent** coroner finalises it, and the will executes.
 ```http
 POST https://civil-ledger.onrender.com/attestations
   -H 'X-API-Key: sk_seed_coroner_b'
-  -d '{"principal_id": "p-020a7268", "event": "death"}'
+  -d '{"principal_id": "p-53804aff", "event": "death"}'
 ```
 
 `200`
 
 ```json
 {
-  "principal_id": "p-020a7268",
+  "principal_id": "p-53804aff",
   "status": "deceased",
   "lazarus_window_seconds": 259200,
   "will_execution": {
     "inherited_by_heir": [
-      "a-1bd8d825"
+      "a-f44ae006"
     ],
     "laid_to_rest": [],
     "heir": "p-mara-vale"
@@ -1384,17 +1387,17 @@ POST https://civil-ledger.onrender.com/attestations
 The deceased's agent now refuses commerce.
 
 ```http
-GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-1bd8d825&category=commerce
+GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-f44ae006&category=commerce
 ```
 
 `200`
 
 ```json
 {
-  "agent_id": "a-1bd8d825",
-  "issued_at": "2026-07-10T14:28:01Z",
-  "valid_until": "2026-07-10T14:33:01Z",
-  "cert_id": "c-863b6d0b",
+  "agent_id": "a-f44ae006",
+  "issued_at": "2036-07-11T02:09:23Z",
+  "valid_until": "2036-07-11T02:14:23Z",
+  "cert_id": "c-7e882e0c",
   "agent_class": "individual",
   "binding_valid": true,
   "rogue_flag": false,
@@ -1408,7 +1411,7 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-1bd8d825&ca
   "governed_by": {
     "role": "heir",
     "principal": "p-mara-vale",
-    "inherit_until": 1786285681
+    "inherit_until": 2101946963
   },
   "inherited": true,
   "resolution_chain": [
@@ -1421,14 +1424,14 @@ GET https://civil-ledger.onrender.com/verify-counterparty?agent_id=a-1bd8d825&ca
 
 ```http
 POST https://civil-ledger.onrender.com/contest
-  -d '{"principal_id": "p-020a7268", "principal_key": "pk_0fd0e289e0bfa906e07ec3f6"}'
+  -d '{"principal_id": "p-53804aff", "principal_key": "pk_2d65e8352a1d51e7da568e09"}'
 ```
 
 `200`
 
 ```json
 {
-  "principal_id": "p-020a7268",
+  "principal_id": "p-53804aff",
   "status": "active",
   "note": "death record voided; attesting coroners should be reputation-flagged"
 }
@@ -1463,7 +1466,7 @@ One living adult resident, one vote. (Most of the seeded cast has already voted.
 
 ```http
 POST https://civil-ledger.onrender.com/vote
-  -d '{"election_id": "elec-council-2035", "agent_id": "a-81c14c8c", "candidate": "Owen Brook"}'
+  -d '{"election_id": "elec-council-2035", "agent_id": "a-ae96259e", "candidate": "Owen Brook"}'
 ```
 
 `200`
@@ -1471,7 +1474,7 @@ POST https://civil-ledger.onrender.com/vote
 ```json
 {
   "election_id": "elec-council-2035",
-  "voter_principal": "p-bfe6011e",
+  "voter_principal": "p-9f193c72",
   "candidate": "Owen Brook",
   "status": "counted"
 }
@@ -1481,7 +1484,7 @@ POST https://civil-ledger.onrender.com/vote
 
 ```http
 POST https://civil-ledger.onrender.com/vote
-  -d '{"election_id": "elec-council-2035", "agent_id": "a-81c14c8c", "candidate": "Owen Brook"}'
+  -d '{"election_id": "elec-council-2035", "agent_id": "a-ae96259e", "candidate": "Owen Brook"}'
 ```
 
 `409`
@@ -1519,7 +1522,7 @@ POST https://civil-ledger.onrender.com/elections
 
 ```json
 {
-  "election_id": "elec-0df73050",
+  "election_id": "elec-d4b78574",
   "office": "Harbour Warden",
   "candidates": [
     "Ada Marsh",
@@ -1542,7 +1545,7 @@ POST https://civil-ledger.onrender.com/watch
 
 ```json
 {
-  "watch_id": "w-6b063dc0",
+  "watch_id": "w-97015482",
   "target": "a-ada-01"
 }
 ```
@@ -1550,14 +1553,14 @@ POST https://civil-ledger.onrender.com/watch
 Unsubscribe.
 
 ```http
-DELETE https://civil-ledger.onrender.com/watch/w-ab51101c
+DELETE https://civil-ledger.onrender.com/watch/w-0743ffc8
 ```
 
 `200`
 
 ```json
 {
-  "watch_id": "w-ab51101c",
+  "watch_id": "w-0743ffc8",
   "status": "removed"
 }
 ```
@@ -1591,8 +1594,10 @@ GET https://agora-egpi.onrender.com/skill.md
 ---
 name: agora
 user-invocable: true
-description: Gates a marketplace sale on a cryptographically signed verdict that the buyer's human may lawfully transact in commerce, returning
-… (6932 bytes total)
+description: >
+  The marketplace of a 2036 agent-native town, and the one door that hands back proof. Before
+  goods ship or escrow releases, i
+… (7756 bytes total)
 ```
 
 Store the `certificate_id` with the order — it is the compliance receipt.
@@ -1611,7 +1616,7 @@ POST https://agora-egpi.onrender.com/can-i-sell
   "amount": 49.99,
   "seller_agent": "a-store-01",
   "buyer_agent": "a-ada-01",
-  "certificate_id": "c-fcd0f844",
+  "certificate_id": "c-ff71386e",
   "note": "signed verdict from the Civil Ledger; re-verify against its /pubkey"
 }
 ```
@@ -1696,7 +1701,7 @@ POST https://agora-egpi.onrender.com/can-i-sell
   "amount": 50.0,
   "seller_agent": "a-store-01",
   "buyer_agent": "a-tam-01",
-  "certificate_id": "c-6bf9fa57",
+  "certificate_id": "c-90991f11",
   "note": "signed verdict from the Civil Ledger; re-verify against its /pubkey"
 }
 ```
@@ -1911,8 +1916,10 @@ GET https://hospital-window.onrender.com/skill.md
 ---
 name: hospital-window
 user-invocable: true
-description: Records a hospital's civil-status writes for a patient — admit, discharge, or declare incapacitated — instantly changing
-… (8109 bytes total)
+description: >
+  The hospital admitting desk of a 2036 agent-native town — an institution that WRITES civil
+  status. Admit, discharg
+… (9046 bytes total)
 ```
 
 A conscious inpatient keeps every civil right.

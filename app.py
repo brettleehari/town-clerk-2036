@@ -48,6 +48,10 @@ from pydantic import BaseModel
 # --------------------------------------------------------------------------- #
 
 DB_PATH = os.environ.get("KYA_DB", "kya.db")
+# The town runs in 2036. The host clock is a decade behind, so we shift every
+# timestamp forward by exactly ten years (2026-07-10 -> 2036-07-10, accounting
+# for the 3 leap days in between). Overridable via env for testing.
+TIME_OFFSET_SECONDS = int(os.environ.get("KYA_TIME_OFFSET_SECONDS", 3653 * 86400))
 CERT_TTL_SECONDS = 300          # verdicts expire in 5 minutes (no stale-alive replay)
 RECORD_TTL_SECONDS = 3600       # resolution records' TTL (DNS-style)
 LAZARUS_WINDOW_SECONDS = 72 * 3600
@@ -266,11 +270,12 @@ def verify_payload(cert: dict) -> bool:
         # never a 500. A verdict either verifies against the root key or it does not.
         return False
 
-def now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 def ts() -> int:
-    return int(time.time())
+    # Town clock: real epoch shifted forward into 2036 (see TIME_OFFSET_SECONDS).
+    return int(time.time()) + TIME_OFFSET_SECONDS
+
+def now_iso() -> str:
+    return datetime.fromtimestamp(ts(), timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 # --------------------------------------------------------------------------- #
 #  Storage                                                                     #

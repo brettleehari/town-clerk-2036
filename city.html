@@ -96,6 +96,21 @@
   .rite b{color:var(--ink);font-weight:600}
   .loading{color:var(--dim);font-size:13px}
   a.inline{color:var(--gold);cursor:pointer;text-decoration:none;border-bottom:1px dotted var(--gold-dim)}
+  /* the written Constitution, rendered inside the seal panel */
+  .doc{max-height:56vh;overflow:auto;padding:14px 14px 4px;border:1px solid #141c2b;border-radius:10px;
+    background:linear-gradient(180deg,#0a0f1a,#080b12)}
+  .doc h1{font-family:Georgia,"Times New Roman",serif;font-size:17px;color:var(--gold);margin:0 0 2px;letter-spacing:.01em;line-height:1.25}
+  .doc h2{font-family:Georgia,serif;font-size:13.5px;color:var(--ink);margin:16px 0 4px;font-weight:600}
+  .doc h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dim);margin:14px 0 4px}
+  .doc p{font-size:12.5px;line-height:1.6;color:var(--dim);margin:6px 0}
+  .doc blockquote{margin:8px 0;padding:6px 12px;border-left:2px solid var(--gold-dim);color:var(--ink);font-style:italic;font-size:12.5px}
+  .doc hr{border:none;border-top:1px solid #182031;margin:14px 0}
+  .doc ul{margin:6px 0 6px 16px;padding:0} .doc li{font-size:12.5px;line-height:1.55;color:var(--dim);margin:3px 0}
+  .doc b,.doc strong{color:var(--ink);font-weight:600}
+  .doc code{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--gold)}
+  .doc table{border-collapse:collapse;width:100%;margin:8px 0}
+  .doc td{padding:4px 8px;border-bottom:1px solid #131a29;font-size:12px;vertical-align:top;color:var(--dim)}
+  .doc td:first-child{color:var(--gold);font-weight:600;white-space:nowrap}
   /* header tagline (staple #1) */
   .tagline{font-size:11px;color:var(--gold);letter-spacing:.05em;font-weight:500;margin-top:3px;opacity:.85}
   /* intro manifesto overlay (opening #2) */
@@ -646,9 +661,39 @@ function openPanel(kicker,title,sub){
 }
 function closePanel(){document.getElementById("panel").classList.remove("open"); if(activeLens==="none") clearHighlight();}
 
+/* --- the written Constitution, fetched from /constitution.md and rendered in-panel --- */
+function mdInline(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
+}
+function mdToHtml(md){
+  const lines=md.replace(/\r/g,"").split("\n"); let out=[], i=0;
+  while(i<lines.length){
+    let ln=lines[i];
+    if(/^\s*$/.test(ln)){i++;continue;}
+    if(/^#\s+/.test(ln)){out.push("<h1>"+mdInline(ln.replace(/^#\s+/,""))+"</h1>");i++;continue;}
+    if(/^##\s+/.test(ln)){out.push("<h2>"+mdInline(ln.replace(/^##\s+/,""))+"</h2>");i++;continue;}
+    if(/^###\s+/.test(ln)){out.push("<h3>"+mdInline(ln.replace(/^###\s+/,""))+"</h3>");i++;continue;}
+    if(/^---\s*$/.test(ln)){out.push("<hr>");i++;continue;}
+    if(/^>\s?/.test(ln)){let b=[];while(i<lines.length&&/^>\s?/.test(lines[i])){b.push(mdInline(lines[i].replace(/^>\s?/,"")));i++;}out.push("<blockquote>"+b.join(" ")+"</blockquote>");continue;}
+    if(/^\|/.test(ln)){let rows=[];while(i<lines.length&&/^\|/.test(lines[i])){const c=lines[i].split("|").slice(1,-1).map(x=>x.trim());if(!c.every(x=>/^-+$/.test(x)))rows.push(c);i++;}
+      out.push("<table>"+rows.map(r=>"<tr>"+r.map(c=>"<td>"+mdInline(c)+"</td>").join("")+"</tr>").join("")+"</table>");continue;}
+    if(/^[-*]\s+/.test(ln)){let items=[];while(i<lines.length&&/^[-*]\s+/.test(lines[i])){items.push("<li>"+mdInline(lines[i].replace(/^[-*]\s+/,""))+"</li>");i++;}out.push("<ul>"+items.join("")+"</ul>");continue;}
+    let para=[];while(i<lines.length&&!/^\s*$/.test(lines[i])&&!/^(#|>|\||[-*]\s|---)/.test(lines[i])){para.push(lines[i]);i++;}
+    out.push("<p>"+mdInline(para.join(" "))+"</p>");
+  }
+  return out.join("");
+}
+async function loadConstitutionDoc(el){
+  try{
+    const r=await fetch("/constitution.md"); if(!r.ok) throw 0;
+    el.innerHTML=mdToHtml(await r.text());
+  }catch(e){ el.innerHTML='<p class="loading">the Constitution is available at <a class="inline" href="/constitution.md" target="_blank">/constitution.md</a></p>'; }
+}
+
 /* --- ROOT: the constitution blooms --- */
 async function panelRoot(){
-  const pb=openPanel("City constitutional root","The Civil Ledger",GRAPH.root_pubkey.slice(0,22)+"…");
+  const pb=openPanel("The AI Agent Constitution",(LAW.title||"The Civil Ledger"),GRAPH.root_pubkey.slice(0,22)+"…");
   pb.innerHTML=`<div class="sec">
     <p style="color:var(--ink);font-size:13.5px;line-height:1.6;margin:0 0 12px">
       The Open Agentic Web asks billions of agents to <b>discover</b>, <b style="color:var(--gold)">verify</b>,
@@ -657,11 +702,14 @@ async function panelRoot(){
       agent resolves to a real human or corporation through a chain back to this key.</p>
     <p style="color:var(--dim);font-size:12.5px;line-height:1.55;margin:0">
     ${LAW.preamble||"A written constitution, generated from the very code that enforces it."}</p></div>
+    <div class="sec"><h4>The written Constitution</h4>
+      <div id="constdoc" class="doc"><span class="loading">loading the Constitution…</span></div></div>
     <div class="sec"><h4>Status → capacity (the law)</h4><table class="law"><tbody id="lawtbl"></tbody></table></div>
     <div class="sec"><h4>Institutions & their powers</h4><div id="roleperm"></div></div>
     <div class="sec"><h4>Parameters</h4><div id="params"></div></div>
     <button class="act" id="verifyLaw">✓ Verify this constitution against the root key</button>
     <div id="lawsig" class="sig" style="margin-top:10px"></div>`;
+  loadConstitutionDoc(pb.querySelector("#constdoc"));
   const tb=pb.querySelector("#lawtbl");
   Object.entries(LAW.status_acl||{}).forEach(([st,cats])=>{
     const tr=document.createElement("tr");

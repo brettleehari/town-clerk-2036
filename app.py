@@ -639,15 +639,18 @@ def build_constitution() -> dict:
         role_events.setdefault(role, set()).add(ev)
 
     doc = {
-        "title": f"The Constitution of {TOWN_NAME}",
+        "title": f"The AI Agent Constitution — The Enabled Model Town of {TOWN_NAME}, 2036",
         "town": TOWN_NAME,
-        "version": "1.1.0",
+        "version": "2.0.0",
         "root_pubkey": ROOT_PUB_B64,
-        "preamble": ("Every agent must resolve to a human or corporation through a chain of "
-                     "signing authorities rooted at the city root key. Institutions write "
-                     "civic facts; everyone else reads. A human's civil status governs what "
-                     "their agent may lawfully do. This document is generated from the code "
-                     "that enforces it and signed by the city root key."),
+        "preamble": ("We, the people and institutions of Alford — and the agents who act in our "
+                     "name — in order to form a more perfect town for the age of autonomous "
+                     "machines, establish justice between the human and the agent, ensure that no "
+                     "software transacts without a soul answerable behind it, secure to the living "
+                     "their sovereignty, to the vulnerable their protection, and to the dead their "
+                     "dignity, and preserve human meaning against the tide of automation, do ordain "
+                     "and establish this Constitution for the Enabled Model Town of Alford, in the "
+                     "year 2036. The means became agentic. The meaning stays human."),
         "transaction_categories": CATEGORIES,
         "institutions": ROLES,
         "role_permissions": {r: sorted(role_events.get(r, set())) for r in ROLES},

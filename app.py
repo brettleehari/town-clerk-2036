@@ -108,7 +108,7 @@ FSM = {
     ("incarcerated", "death"):              ("deceased", "coroner"),
 }
 
-ROLES = ["registrar", "court", "hospital", "coroner", "police"]
+ROLES = ["registrar", "court", "hospital", "coroner", "police", "insurance"]
 
 # Events that are not FSM status-transitions but still institution-gated.
 AUX_EVENTS = {
@@ -116,6 +116,10 @@ AUX_EVENTS = {
     "appoint_executor": "court",
     "flag_rogue": "police",
     "clear_flag": "police",
+    # Insurance writes a coverage fact about a principal — orthogonal to civil status, so it
+    # is an aux event, not an FSM transition. It never changes what an agent may lawfully do.
+    "confirm_coverage": "insurance",
+    "lapse_coverage": "insurance",
 }
 
 # --------------------------------------------------------------------------- #
@@ -366,7 +370,8 @@ def init_db():
             id TEXT PRIMARY KEY, name TEXT, status TEXT, kind TEXT,
             guardian_agent TEXT, executor_agent TEXT, regents TEXT,
             principal_key TEXT, acl_override TEXT, spend_cap REAL,
-            death_ts INTEGER, will TEXT, birth_year INTEGER, created TEXT);
+            death_ts INTEGER, will TEXT, birth_year INTEGER,
+            covered INTEGER DEFAULT 0, created TEXT);
         CREATE TABLE IF NOT EXISTS agents (
             id TEXT PRIMARY KEY, name TEXT, class TEXT, rogue INTEGER DEFAULT 0,
             created TEXT);
@@ -1206,7 +1211,7 @@ def town_graph():
         insts = c.execute("SELECT id,name,role FROM institutions").fetchall()
         corps = c.execute("SELECT id,name FROM corporations").fetchall()
         princ = c.execute(
-            "SELECT id,name,status,kind,guardian_agent,executor_agent,regents FROM principals"
+            "SELECT id,name,status,kind,guardian_agent,executor_agent,regents,covered FROM principals"
         ).fetchall()
         agents = c.execute("SELECT id,name,class,rogue FROM agents").fetchall()
         binds = c.execute(
@@ -1221,6 +1226,7 @@ def town_graph():
             "id": r["id"], "name": r["name"], "status": r["status"], "kind": r["kind"],
             "guardian_agent": r["guardian_agent"], "executor_agent": r["executor_agent"],
             "regents": json.loads(r["regents"]) if r["regents"] else [],
+            "covered": bool(r["covered"]),
         } for r in princ],
         "agents": [{"id": r["id"], "name": r["name"], "class": r["class"],
                     "rogue": bool(r["rogue"])} for r in agents],
@@ -1568,6 +1574,20 @@ def attest(body: AttestIn, x_api_key: str = Header(None)):
                       (body.detail.get("agent_id"), body.principal_id))
             _log_att(c, body.principal_id, event, role, inst["id"], body.detail)
         return {"principal_id": body.principal_id, event: body.detail.get("agent_id")}
+
+    # ---- insurance coverage (a fact about a person, not a civil-status change) ----
+    if event in ("confirm_coverage", "lapse_coverage"):
+        if AUX_EVENTS[event] != role:
+            raise CivicError(403, "WRONG_ROLE", f"Only insurance may {event}, not {role}.",
+                             "Use an insurance key (POST /institutions/register with role=insurance).")
+        covered = 1 if event == "confirm_coverage" else 0
+        with db() as c:
+            if not c.execute("SELECT 1 FROM principals WHERE id=?", (body.principal_id,)).fetchone():
+                raise CivicError(404, "UNKNOWN_PRINCIPAL", "unknown principal",
+                                 "Check the principal_id; list ids via GET /cast or GET /graph.")
+            c.execute("UPDATE principals SET covered=? WHERE id=?", (covered, body.principal_id))
+            _log_att(c, body.principal_id, event, role, inst["id"], body.detail)
+        return {"principal_id": body.principal_id, "covered": bool(covered), "by": role}
 
     # ---- civil-status FSM transition ----
     with db() as c:

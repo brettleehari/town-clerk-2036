@@ -33,7 +33,9 @@ and corporations and institutions run agents too. Left ungoverned, an agentic to
 into three disorders. This Constitution is built to make each one **impossible before a
 transaction**, not merely punishable after it:
 
-1. **Rogue agents** — software claiming to represent a human it has no authority over.
+1. **Rogue agents** — software claiming to represent a human it has no authority over, or
+   acting for no one at all. The perpetrator need no longer be a human behind the machine;
+   the agent itself can be the wrongdoer.
 2. **Agent sprawl** — one actor spawning thousands of agents (fraud farms, botnets, Sybil
    attacks against any reputation system).
 3. **Stale authority** — agents still transacting for humans who have died, fallen into a
@@ -61,11 +63,18 @@ the power to transact at all; an unregistered agent is a rogue by definition. *A
 refusal itself is signed* — the town does not merely stay silent on a rogue; it issues a
 signed verdict that this agent is nobody's.
 
+**Section 4.** In 2036 the wrongdoer need not be a human. An agent can act on its own account
+— an autonomous impostor with no principal behind it — and so **an agent may itself be the
+perpetrator, not merely a person's instrument.** This Constitution therefore attaches
+accountability to the *agent* directly: a rogue is flagged, refused, and named by its own id,
+whether or not a human stands behind it. The question is never only *"which human is to blame?"*
+but *"may this actor act at all?"* — and an actor that resolves to no one may not.
+
 ---
 
 ## Article II — The Separation of Powers · *Only Institutions Write*
 
-**Section 1.** The town recognizes five constitutional institutions. Each may write **only
+**Section 1.** The town recognizes its constitutional institutions. Each may write **only
 its own kind of civic fact**, and no institution may reach beyond its mandate:
 
 | Institution | May attest |
@@ -75,6 +84,7 @@ its own kind of civic fact**, and no institution may reach beyond its mandate:
 | **Hospital** | admission, discharge, incapacity, recovery |
 | **Coroner** | death (requires two independent offices) |
 | **Police** | missing / found, rogue flags |
+| **Insurance** | coverage — confirm or lapse |
 
 **Section 2.** The hospital cannot sentence; the court cannot declare death. Every consumer
 of the Ledger — every storefront, service, and counterparty — may **only read.** This

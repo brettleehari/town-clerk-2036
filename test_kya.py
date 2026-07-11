@@ -594,5 +594,34 @@ _tot_bytes = len(json.dumps(_full))
 check("the collection envelope adds < 30% bytes to a 6-agent batch",
       _env_bytes < 0.30 * _tot_bytes)
 
+print("\n[29] Insurance institution & coverage (seed: 7 institutions, two coroners kept)")
+INS = {"X-API-Key": "sk_seed_insurance"}
+_g = client.get("/graph").json()
+_cov = {p["id"]: p.get("covered") for p in _g["principals"]}
+check("seeded coverage surfaces on the map", _cov.get("p-ada-marsh") is True)
+check("uncovered residents read covered:false", _cov.get("p-tam-holt") is False)
+_con = client.get("/constitution").json()
+check("both coroners still present (k-of-2 intact)",
+      client.get("/census").json()["institutions"].get("coroner") == 2)
+check("insurance is a constitutional institution",
+      "insurance" in _con["institutions"] and "insurance" in _con["role_permissions"])
+check("law: insurance may attest coverage, and only coverage",
+      set(_con["role_permissions"]["insurance"]) == {"confirm_coverage", "lapse_coverage"})
+check("insurance confirms coverage",
+      client.post("/attestations", headers=INS,
+                  json={"principal_id": "p-tam-holt", "event": "confirm_coverage"}).json().get("covered") is True)
+check("...and it shows on the map",
+      client.get("/graph").json()["principals"] and
+      any(p["id"] == "p-tam-holt" and p["covered"] for p in client.get("/graph").json()["principals"]))
+check("insurance lapses coverage",
+      client.post("/attestations", headers=INS,
+                  json={"principal_id": "p-tam-holt", "event": "lapse_coverage"}).json().get("covered") is False)
+_wrong = client.post("/attestations", headers=HOSP,
+                     json={"principal_id": "p-ada-marsh", "event": "confirm_coverage"})
+check("only insurance may write coverage (hospital → 403, self-explaining)",
+      _wrong.status_code == 403 and all(k in _wrong.json() for k in ("error", "reason", "fix")))
+check("coverage is NOT a civil-status change (Ada still transacts)",
+      client.get("/verify-counterparty", params={"agent_id": "a-ada-01", "category": "commerce"}).json()["proceed"] is True)
+
 print(f"\n==== {P} passed, {F} failed ====")
 raise SystemExit(1 if F else 0)

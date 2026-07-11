@@ -19,6 +19,7 @@ INST = {
     "hospital":  ("inst-hospital",  "Fairview Hospital",              "sk_seed_hospital"),
     "coroner":   ("inst-coroner-a", "Berkshire Coroner A",            "sk_seed_coroner_a"),
     "police":    ("inst-police",    "Alford Police",                  "sk_seed_police"),
+    "insurance": ("inst-insurance", "Alford Mutual Insurance",        "sk_seed_insurance"),
 }
 CORONER_B = ("inst-coroner-b", "Berkshire Coroner B", "sk_seed_coroner_b", "coroner")
 
@@ -147,6 +148,15 @@ def seed_town():
             c.execute("INSERT INTO attestations (id,principal_id,event,role,institution_id,detail,created,ts) "
                       "VALUES (?,?,?,?,?,?,?,?)",
                       (f"att-birth-{pid}", pid, "birth", "registrar", "inst-registrar", "{}", now_iso(), ts()))
+
+        # Alford Mutual Insurance confirms coverage for a few living residents (a civic fact
+        # orthogonal to civil status; readable via /graph and /rites).
+        for pid in ("p-ada-marsh", "p-bram-kessler", "p-cyrus-ford", "p-owen-brook"):
+            c.execute("UPDATE principals SET covered=1 WHERE id=?", (pid,))
+            c.execute("INSERT INTO attestations (id,principal_id,event,role,institution_id,detail,created,ts) "
+                      "VALUES (?,?,?,?,?,?,?,?)",
+                      (f"att-cover-{pid}", pid, "confirm_coverage", "insurance", "inst-insurance",
+                       "{}", now_iso(), ts()))
 
 
 if __name__ == "__main__":

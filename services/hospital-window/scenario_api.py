@@ -61,6 +61,11 @@ BASES = {"hospital": SELF, "ledger": LEDGER}
 MAX_CUSTOM_SCENARIOS = 50
 MAX_STEPS = 20
 
+# The httpx client /run uses. A test can swap this for one whose transport routes to
+# in-process apps (see services/test_compose.py); production uses a plain networked client.
+def _client_factory():
+    return httpx.AsyncClient(timeout=30.0)
+
 
 # ---------------------------------------------------------------------------
 # Step helpers — each step is a plain dict so /scenarios/{id} can serve it.
@@ -565,7 +570,7 @@ async def run_scenario(sid: str, req: Optional[RunRequest] = None):
         )
 
     transcript, failed = [], False
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _client_factory() as client:
         for s in sc["steps"]:
             headers = {}
             if s["key_role"]:

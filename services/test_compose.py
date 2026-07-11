@@ -10,6 +10,7 @@ to it (the same trick the real deployment does over HTTP via LEDGER_URL). Verifi
 Run:  python3 services/test_compose.py     (from the repo root)
 """
 import importlib.util
+import json
 import os
 import sys
 import tempfile
@@ -37,6 +38,10 @@ care = load("care-proxy")
 hall = load("town-hall")
 hire = load("hiring")
 agora = load("agora")
+# hospital-window carries the scenario plane (scenario_api). Point its SELF/LEDGER at private
+# hostnames so we can route /run through in-process ASGI apps (no network) below.
+os.environ["SELF_URL"], os.environ["LEDGER_URL"] = "http://hosp.local", "http://ledger.local"
+sys.path.insert(0, os.path.join(ROOT, "services", "hospital-window"))
 hosp = load("hospital-window")
 
 # --- compose: point each service's ledger client at the in-process ledger ---
@@ -67,6 +72,13 @@ hosp._ledger = _req_strict
 
 DC, BC, CC, HC = (TestClient(m.app) for m in (date, baby, care, hall))
 RC, AC, WC = (TestClient(m.app) for m in (hire, agora, hosp))
+
+# Route the scenario plane's /run httpx client at the in-process apps (hosp + ledger), so a
+# scenario runs end-to-end against this test's seeded town with no network.
+import httpx as _httpx, scenario_api as _SA
+_SA._client_factory = lambda: _httpx.AsyncClient(timeout=30.0, mounts={
+    "all://hosp.local": _httpx.ASGITransport(app=hosp.app),
+    "all://ledger.local": _httpx.ASGITransport(app=ledger_app.app)})
 
 P = F = 0
 def check(name, cond, extra=""):
@@ -247,6 +259,38 @@ check("...and the patient is restored", r.status_code == 200 and r.json()["statu
 r = WC.post("/admit", json={"patient_agent": "a-silas-01"})
 check("a GENUINE illegal transition still returns 409 with the real status",
       r.status_code == 409 and "deceased" in r.json()["detail"])
+
+print("\n[scenario plane] discover, compose, and RUN the playbook as an API")
+_menu = WC.get("/scenarios").json()
+_ids = {s["id"] for s in _menu["scenarios"]}
+check("GET /scenarios lists the seeded playbook",
+      {"impostor", "round-trip", "rogue-agent"} <= _ids)
+_detail = WC.get("/scenarios/impostor").json()
+check("a scenario serves its exact steps + curl", bool(_detail["steps"][0]["curl"]))
+check("role keys are REDACTED in every step (no credential ever leaks)",
+      "sk_seed" not in json.dumps(_detail))
+_acts = WC.get("/scenarios/actions").json()["actions"]
+check("the action vocabulary is published", "admit" in _acts and "flag_rogue" in _acts)
+# RUN a read-only scenario end-to-end against the in-process town → assert the transcript.
+_run = WC.post("/scenarios/impostor/run").json()
+check("POST /scenarios/impostor/run returns a passing transcript",
+      _run["ok"] is True and _run["transcript"][0]["http"] == 404
+      and _run["transcript"][0]["pass"] is True)
+# A write scenario refuses to run without confirmation (428), then runs and self-cleans.
+check("a write scenario is confirm-gated (428 without confirm)",
+      WC.post("/scenarios/round-trip/run").status_code == 428)
+_wr = WC.post("/scenarios/round-trip/run", json={"confirm": True}).json()
+check("...and with confirm it runs, cleans up, and leaves the patient active",
+      _wr["ok"] is True
+      and WC.post("/scenarios/round-trip/run", json={"confirm": True})  # idempotent re-run
+      and _get("/verify/a-gwen-01")["status"] == "active")
+# Compose a custom scenario from the whitelist; reject anything outside it.
+_new = WC.post("/scenarios", json={"name": "compose smoke", "steps": [
+    {"action": "resolve", "params": {"agent": "a-ada-01"}}]})
+check("POST /scenarios composes a custom scenario (201)", _new.status_code == 201)
+check("an unknown action is refused (422)",
+      WC.post("/scenarios", json={"name": "bad", "steps": [
+          {"action": "nuke_town", "params": {}}]}).status_code == 422)
 
 print(f"\n==== compose: {P} passed, {F} failed ====")
 raise SystemExit(1 if F else 0)

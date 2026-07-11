@@ -4,6 +4,9 @@ __pycache__/
 *.db-journal
 *.rootseed
 
+# local Claude Code config (test-loop hook) — kept on this machine, not published
+.claude/
+
 # local build-loop scratch (kept on disk, out of the published repo)
 CLAUDE.md
 overnight/PROMPT.md

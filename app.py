@@ -1313,6 +1313,11 @@ def reset_seed(x_admin_key: str = Header(None)):
             "root_pubkey_unchanged": ROOT_PUB_B64,
             "note": "canonical seeded ids restored; the root signing key was not rotated"}
 
+# The submitted demo film, hosted on Google Drive (public — anyone with the link). Baked in as
+# the default so /video serves the film with zero configuration; the VIDEO_URL env var still
+# takes precedence, so the cut can be repointed later without a code change.
+DEFAULT_VIDEO_URL = "https://drive.google.com/file/d/1WYJdPxWeZHhjEex9RP4d-hAFaBdceF1T/view"
+
 @app.get("/video")
 def video():
     """A stable URL for the demo video, so the submission never has to be edited again.
@@ -1320,11 +1325,12 @@ def video():
     Resolution order, and it always returns 200 or a redirect — never a 404, because a dead
     link in a submission is worse than a missing video:
       1. `VIDEO_URL` env var  -> 302 to wherever the latest cut lives (YouTube, Loom, S3).
-      2. `video/demo.mp4`     -> stream the file bundled in the repo.
-      3. neither              -> a placeholder page pointing at the live UI.
-    Repoint it any time by setting VIDEO_URL; no redeploy of the submission needed.
+      2. DEFAULT_VIDEO_URL     -> the submitted cut, hosted on Google Drive.
+      3. `video/demo.mp4`     -> stream the file bundled in the repo.
+      4. neither              -> a placeholder page pointing at the live UI.
+    Repoint it any time by setting VIDEO_URL (env wins); no redeploy needed.
     """
-    url = os.environ.get("VIDEO_URL")
+    url = os.environ.get("VIDEO_URL") or DEFAULT_VIDEO_URL
     if url:
         return RedirectResponse(url, status_code=302)
 

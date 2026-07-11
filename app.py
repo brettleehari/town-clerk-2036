@@ -906,6 +906,14 @@ def constitution_md():
         return PlainTextResponse(open(p).read())
     return PlainTextResponse("CONSTITUTION.md not bundled", status_code=404)
 
+@app.get("/constitution.html")
+def constitution_page():
+    """The human-facing Constitution — the re-founded text rendered as an aged-parchment
+    founding document (à la the U.S. Constitution). A view only: it fetches /constitution.md
+    same-origin, so the REST resources (/constitution.md prose, /constitution signed JSON)
+    stay the single source of truth."""
+    return _serve_html("constitution.html")
+
 @app.get("/start")
 def start(full: int = 0):
     """START HERE. One call briefs a context-free agent to run the whole town: the goal, the

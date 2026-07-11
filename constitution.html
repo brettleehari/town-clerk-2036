@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The AI Agent Constitution · Alford, 2036</title>
+<style>
+  :root{
+    --ink:#2b2114; --ink-soft:#5b4a33;
+    --parch:#f3e7cc; --parch2:#efe0bf; --edge:#d8c39a; --seal:#7c1d1d; --gold:#8a6d2f;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0d13;color:var(--ink);font-family:var(--serif);line-height:1.62;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 700px at 50% -10%,rgba(120,90,40,.12),transparent 60%);
+    padding:0 0 8vh}
+
+  /* the dark chrome around the framed document */
+  .chrome{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;font-family:var(--sans);background:linear-gradient(#0a0d13,rgba(10,13,19,.75));backdrop-filter:blur(4px)}
+  .chrome a{color:#c9b78c;text-decoration:none;font-size:13px;letter-spacing:.02em}
+  .chrome a:hover{color:#f0e2c0}
+  .chrome .home{font-weight:600}
+  .chrome .rest{font-size:11.5px;color:#7d7156;font-family:ui-monospace,Menlo,monospace}
+
+  /* the parchment sheet */
+  .sheet{max-width:820px;margin:34px auto;padding:64px clamp(24px,6vw,76px) 72px;position:relative;
+    background:
+      radial-gradient(900px 500px at 15% 0%,rgba(255,255,255,.35),transparent 55%),
+      radial-gradient(700px 700px at 100% 100%,rgba(160,120,60,.14),transparent 55%),
+      linear-gradient(160deg,var(--parch),var(--parch2));
+    border:1px solid var(--edge);border-radius:4px;
+    box-shadow:0 40px 120px -30px rgba(0,0,0,.85),0 2px 0 rgba(255,255,255,.25) inset,0 -30px 60px -40px rgba(120,80,30,.4) inset}
+  .sheet::before,.sheet::after{content:"";position:absolute;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,var(--edge),transparent)}
+  .sheet::before{top:16px} .sheet::after{bottom:16px}
+
+  /* masthead */
+  .crest{text-align:center;margin-bottom:8px}
+  .crest svg{width:78px;height:78px}
+  .eyebrow{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 2px}
+  .masthead{text-align:center;font-size:clamp(30px,6vw,54px);line-height:1.04;letter-spacing:.01em;margin:6px 0 2px;
+    font-variant:small-caps;font-weight:700;color:var(--ink)}
+  .sub{text-align:center;font-style:italic;font-size:clamp(15px,2.4vw,19px);color:var(--ink-soft);margin-bottom:10px}
+  .ornament{display:flex;align-items:center;gap:14px;justify-content:center;color:var(--gold);margin:18px 0 26px}
+  .ornament::before,.ornament::after{content:"";height:1px;width:min(160px,26vw);background:linear-gradient(90deg,transparent,var(--gold))}
+  .ornament::after{background:linear-gradient(90deg,var(--gold),transparent)}
+
+  /* rendered document */
+  #doc{opacity:0;transition:opacity .5s}
+  #doc.on{opacity:1}
+  #doc h1{display:none}                     /* the file's H1 is replaced by the masthead */
+  #doc h2{font-variant:small-caps;font-weight:700;font-size:clamp(21px,3.4vw,28px);text-align:center;
+    margin:38px 0 4px;letter-spacing:.02em;color:var(--ink)}
+  #doc h2 + p{margin-top:10px}
+  #doc h3{font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);
+    text-align:center;margin:26px 0 8px}
+  #doc p{font-size:clamp(16px,2.2vw,18px);margin:12px 0;text-align:justify;hyphens:auto;color:#33281a}
+  #doc blockquote{margin:16px auto;max-width:60ch;padding:2px 0;border:none;text-align:center;font-style:italic;
+    font-size:clamp(16px,2.4vw,19px);color:var(--ink-soft)}
+  #doc hr{border:none;margin:26px 0;height:14px;
+    background:radial-gradient(circle,var(--gold) 1px,transparent 1.5px) center/16px 100% repeat-x;opacity:.5}
+  #doc ul{margin:12px 0 12px 26px} #doc li{font-size:clamp(15px,2.1vw,17.5px);margin:7px 0;text-align:left;color:#33281a}
+  #doc b,#doc strong{color:var(--ink);font-weight:700}
+  #doc code{font-family:ui-monospace,Menlo,monospace;font-size:.82em;color:#7a3410;background:rgba(140,80,30,.08);padding:1px 5px;border-radius:4px}
+  #doc table{border-collapse:collapse;width:100%;margin:16px 0;font-size:clamp(14px,2vw,16px)}
+  #doc td{padding:8px 12px;border-bottom:1px solid rgba(140,110,60,.3);vertical-align:top;text-align:left;color:#33281a}
+  #doc td:first-child{font-weight:700;white-space:nowrap;color:var(--ink)}
+  /* drop cap on the Preamble's first paragraph (the "We, the people…" opening) */
+  #doc h2.preamble + p::first-letter{float:left;font-size:4.4em;line-height:.72;padding:6px 10px 0 0;color:var(--seal);font-weight:700}
+
+  /* the seal / enactment */
+  .attest{margin-top:40px;text-align:center;color:var(--ink-soft);font-style:italic;font-size:15px}
+  .wax{display:inline-flex;align-items:center;justify-content:center;width:96px;height:96px;border-radius:50%;margin:10px auto 0;
+    background:radial-gradient(circle at 38% 34%,#a23434,var(--seal) 60%,#571010);color:#f3e0c0;
+    font-family:var(--sans);font-size:9px;letter-spacing:.18em;text-transform:uppercase;text-align:center;
+    box-shadow:0 6px 20px -6px rgba(90,10,10,.7),inset 0 2px 6px rgba(255,255,255,.25),inset 0 -6px 12px rgba(0,0,0,.35)}
+  .loading{text-align:center;color:var(--ink-soft);font-style:italic;padding:40px 0}
+  @media(max-width:560px){.sheet{margin:14px 10px;padding:44px 22px 54px}}
+</style>
+</head>
+<body>
+<div class="chrome">
+  <a class="home" href="/">‹ Alford · The Civil Ledger</a>
+  <a class="rest" href="/constitution" target="_blank" rel="noopener" title="the signed, machine-readable law">machine-readable: GET /constitution ↗</a>
+</div>
+
+<article class="sheet">
+  <div class="crest">
+    <svg viewBox="0 0 100 100" aria-label="seal">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#8a6d2f" stroke-width="1.4"/>
+      <circle cx="50" cy="50" r="37" fill="none" stroke="#b89a52" stroke-width="1"/>
+      <path d="M50 30 l4.7 9.5 10.5 1.5 -7.6 7.4 1.8 10.4 -9.4-5 -9.4 5 1.8-10.4 -7.6-7.4 10.5-1.5z" fill="#8a6d2f"/>
+      <text x="50" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="#7c6531" letter-spacing="1">MMXXXVI</text>
+    </svg>
+  </div>
+  <div class="eyebrow">The Enabled Model Town of Alford</div>
+  <h1 class="masthead">The AI Agent Constitution</h1>
+  <div class="sub">A model charter for a town where every agent answers to a human · 2036</div>
+  <div class="ornament">✦</div>
+
+  <div id="doc"><div class="loading">unrolling the parchment…</div></div>
+
+  <div class="attest">
+    <div class="wax">Root<br>Key<br>Seal</div>
+    <p style="margin-top:14px">Sealed under the constitutional root key of the Town of Alford,<br>
+    published at <code style="font-style:normal">GET /pubkey</code>. The means became agentic. The meaning stayed human.</p>
+  </div>
+</article>
+
+<script>
+/* The parchment is a *view*; the source of truth stays the REST resources (/constitution.md
+   prose, /constitution signed JSON). Fetch the prose and render it as a founding document. */
+function inline(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
+}
+function render(md){
+  const lines=md.replace(/\r/g,"").split("\n");let out=[],i=0,sawPreamble=false;
+  while(i<lines.length){
+    let ln=lines[i];
+    if(/^\s*$/.test(ln)){i++;continue;}
+    if(/^#\s+/.test(ln)){out.push("<h1>"+inline(ln.replace(/^#\s+/,""))+"</h1>");i++;continue;}
+    if(/^##\s+/.test(ln)){const t=ln.replace(/^##\s+/,"");const pre=/preamble/i.test(t);if(pre)sawPreamble=true;
+      out.push(`<h2${pre?' class="preamble"':''}>`+inline(t)+"</h2>");i++;continue;}
+    if(/^###\s+/.test(ln)){out.push("<h3>"+inline(ln.replace(/^###\s+/,""))+"</h3>");i++;continue;}
+    if(/^---\s*$/.test(ln)){out.push("<hr>");i++;continue;}
+    if(/^>\s?/.test(ln)){let b=[];while(i<lines.length&&/^>\s?/.test(lines[i])){b.push(inline(lines[i].replace(/^>\s?/,"")));i++;}out.push("<blockquote>"+b.join(" ")+"</blockquote>");continue;}
+    if(/^\|/.test(ln)){let rows=[];while(i<lines.length&&/^\|/.test(lines[i])){const c=lines[i].split("|").slice(1,-1).map(x=>x.trim());if(!c.every(x=>/^-+$/.test(x)))rows.push(c);i++;}
+      out.push("<table>"+rows.map(r=>"<tr>"+r.map(c=>"<td>"+inline(c)+"</td>").join("")+"</tr>").join("")+"</table>");continue;}
+    if(/^[-*]\s+/.test(ln)){let items=[];while(i<lines.length&&/^[-*]\s+/.test(lines[i])){items.push("<li>"+inline(lines[i].replace(/^[-*]\s+/,""))+"</li>");i++;}out.push("<ul>"+items.join("")+"</ul>");continue;}
+    let para=[];while(i<lines.length&&!/^\s*$/.test(lines[i])&&!/^(#|>|\||[-*]\s|---)/.test(lines[i])){para.push(lines[i]);i++;}
+    out.push("<p>"+inline(para.join(" "))+"</p>");
+  }
+  return out.join("");
+}
+(async()=>{
+  const el=document.getElementById("doc");
+  try{
+    const r=await fetch("/constitution.md");if(!r.ok)throw 0;
+    el.innerHTML=render(await r.text());
+    requestAnimationFrame(()=>el.classList.add("on"));
+  }catch(e){
+    el.innerHTML='<p class="loading">The Constitution is served at <a href="/constitution.md" style="color:#7a3410">/constitution.md</a> (prose) and <a href="/constitution" style="color:#7a3410">/constitution</a> (signed JSON).</p>';
+    el.classList.add("on");
+  }
+})();
+</script>
+</body>
+</html>

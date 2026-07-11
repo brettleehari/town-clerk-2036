@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alford · The Title of an Agent</title>
+<style>
+  :root{
+    --bg:#07090f; --bg2:#0b0f18; --ink:#e8edf6; --dim:#8b93a7; --faint:#22293a; --line:#161d2c;
+    --mint:#5dcaa5; --amber:#efb45a; --red:#e26a6a; --gold:#d8b46a; --gold-dim:#9a7f45;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+    line-height:1.5;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(1200px 800px at 50% -10%,rgba(90,120,180,.10),transparent 60%),
+               radial-gradient(900px 700px at 90% 110%,rgba(216,180,106,.06),transparent 60%)}
+
+  main{position:relative;z-index:1}
+  section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:12vh 6vw;position:relative;scroll-snap-align:start}
+  @media(min-height:640px){html{scroll-snap-type:y proximity}}
+
+  .reveal{transition:opacity .9s ease,transform .9s ease}
+  .anim .reveal{opacity:0;transform:translateY(18px)}
+  .anim .reveal.on{opacity:1;transform:none}
+
+  .kicker{font-size:clamp(11px,1.5vw,13px);letter-spacing:.34em;text-transform:uppercase;color:var(--dim);margin-bottom:2.4vh}
+  h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,7vw,76px);line-height:1.1;letter-spacing:-.015em;max-width:16ch}
+  h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,5.2vw,58px);line-height:1.14;max-width:20ch}
+  .lede{font-size:clamp(16px,2.3vw,21px);color:var(--dim);max-width:30ch;margin-top:3vh}
+  .g{color:var(--mint)} .gold{color:var(--gold)} .rd{color:var(--red)} .am{color:var(--amber)}
+
+  /* panel 1 — the constant */
+  .needs{font-family:var(--serif);font-size:clamp(20px,3.4vw,36px);line-height:1.7;max-width:24ch}
+  .needs span{display:inline-block;color:var(--ink)}
+  .anim .needs span{opacity:0;transform:translateY(10px)}
+  .anim .needs.on span{animation:rise .7s forwards}
+  .needs .dot{color:var(--gold-dim);margin:0 .5ch}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* the Title certificate — the object */
+  .stage{width:min(560px,92vw);perspective:1600px}
+  .cert{position:relative;border-radius:14px;padding:34px 32px 28px;text-align:left;
+    background:linear-gradient(160deg,#0e1420,#0a0e17 70%);
+    border:1px solid var(--faint);box-shadow:0 30px 80px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);
+    overflow:hidden}
+  .cert::before{content:"ALFORD";position:absolute;right:-2%;bottom:-6%;font-family:var(--serif);
+    font-size:150px;font-weight:600;color:rgba(216,180,106,.035);letter-spacing:-.04em;pointer-events:none;user-select:none}
+  .cert-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+    border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+  .cert-title{font-family:var(--serif);font-size:19px;letter-spacing:.02em;color:var(--ink)}
+  .cert-sub{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-dim);margin-top:4px}
+  .row{display:flex;gap:14px;padding:9px 0;font-size:14px;align-items:baseline}
+  .row .lab{flex:0 0 108px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);padding-top:2px}
+  .row .val{flex:1;color:var(--ink)}
+  .val .mono{font-family:var(--mono);font-size:12.5px}
+  .kind{font-size:11px;color:var(--dim)}
+  .standing{font-family:var(--serif);font-size:17px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .chip{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+  .chip.ok{border-color:rgba(93,202,165,.4);color:var(--mint)}
+
+  /* the authority chain */
+  .chain{margin:4px 0 2px;padding-left:2px}
+  .node{display:flex;align-items:center;gap:10px;font-size:13px;position:relative;padding:5px 0}
+  .node .glyph{width:22px;text-align:center;color:var(--dim)}
+  .node.root .glyph{color:var(--gold)} .node.root .nm{color:var(--gold)}
+  .node.prin .nm{color:var(--ink)} .node.prin.active .nm{color:var(--mint)}
+  .node .nm{color:var(--ink)} .node .meta{color:var(--dim);font-size:11.5px;margin-left:2px}
+  .link{width:22px;text-align:center;color:var(--line);line-height:.7;font-size:15px}
+  .void{color:var(--dim);font-size:13px;font-style:italic;padding:6px 0 2px}
+
+  /* verdict foot + stamp */
+  .cert-foot{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+  .sig{font-family:var(--mono);font-size:10.5px;color:var(--gold-dim);word-break:break-all;max-width:70%;line-height:1.5}
+  .sig b{color:var(--dim);font-weight:400;letter-spacing:.12em;text-transform:uppercase;font-size:9px;display:block;margin-bottom:3px}
+  .stamp{font-family:var(--serif);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-align:center;
+    border:2px solid var(--mint);color:var(--mint);border-radius:9px;padding:8px 12px;transform:rotate(-5deg);
+    line-height:1.15;flex:0 0 auto;box-shadow:0 0 0 4px rgba(93,202,165,.06)}
+  .stamp small{display:block;font-family:var(--sans);font-weight:400;font-size:9px;letter-spacing:.18em;text-transform:uppercase;opacity:.75;margin-top:2px}
+  .stamp.refuse{border-color:var(--red);color:var(--red);box-shadow:0 0 0 4px rgba(226,106,106,.06)}
+  .stamp.frozen{border-color:var(--amber);color:var(--amber);box-shadow:0 0 0 4px rgba(239,180,90,.06)}
+
+  .livebadge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);margin-top:14px;
+    font-family:var(--mono);opacity:0;transition:opacity .6s}
+  .livebadge.on{opacity:1} .livebadge .pip{width:7px;height:7px;border-radius:50%;background:var(--mint);
+    box-shadow:0 0 0 0 rgba(93,202,165,.6)}
+  .livebadge.on .pip{animation:pulse 2s ease-out 3}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(93,202,165,.5)}70%{box-shadow:0 0 0 7px rgba(93,202,165,0)}100%{box-shadow:0 0 0 0 rgba(93,202,165,0)}}
+  @media(prefers-reduced-motion:reduce){.livebadge.on .pip{animation:none}.reveal{transition:none}.needs.on span{animation:none;opacity:1;transform:none}}
+
+  /* the clerk's window input */
+  .window{margin-top:26px;display:flex;gap:0;align-items:stretch;width:min(440px,90vw)}
+  .window label{position:absolute;left:-9999px}
+  .window input{flex:1;background:#0d1320;border:1px solid var(--faint);border-right:none;color:var(--ink);
+    font-family:var(--mono);font-size:14px;padding:12px 14px;border-radius:10px 0 0 10px;outline:none}
+  .window input:focus{border-color:var(--gold-dim)}
+  .window button{background:var(--gold);color:#1a1206;border:none;font-weight:600;font-size:13px;
+    padding:0 18px;border-radius:0 10px 10px 0;cursor:pointer;letter-spacing:.02em}
+  .window button:hover{filter:brightness(1.08)}
+  .try{font-size:12px;color:var(--dim);margin-top:10px}
+  .try b{color:var(--gold);font-weight:500;cursor:pointer;font-family:var(--mono);font-size:11.5px}
+  .try b:hover{color:var(--ink)}
+
+  /* gallery */
+  .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;
+    width:min(920px,94vw);margin-top:5vh;text-align:left}
+  .mini{background:linear-gradient(160deg,#0d1320,#0a0e16);border:1px solid var(--faint);border-radius:12px;padding:18px 18px 16px}
+  .mini h3{font-family:var(--serif);font-weight:500;font-size:18px;margin-bottom:2px}
+  .mini .who{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:12px}
+  .mini .st{display:inline-block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--line);margin-bottom:12px}
+  .mini .cap{font-size:13px;color:var(--dim);line-height:1.5}
+  .mini .verdict{margin-top:12px;font-size:12px;font-family:var(--mono)}
+  .ok{color:var(--mint)} .no{color:var(--red)} .fr{color:var(--amber)} .es{color:var(--gold)}
+
+  /* the seal */
+  .seal{width:200px;height:200px;margin-bottom:5vh}
+  .seal text{font-family:var(--serif)}
+
+  /* closing doors */
+  .doors{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:5vh}
+  .door{font-family:var(--sans);font-size:14px;letter-spacing:.02em;text-decoration:none;padding:14px 26px;border-radius:12px;
+    border:1px solid var(--faint);color:var(--ink);transition:border-color .25s,background .25s}
+  .door:hover{border-color:var(--gold-dim);background:rgba(216,180,106,.06)}
+  .door.primary{border-color:var(--gold-dim);color:var(--gold)}
+
+  /* progress + hint */
+  #bar{position:fixed;left:0;top:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--mint));width:0;z-index:20;transition:width .2s ease}
+  .foot{font-size:11.5px;color:var(--faint);color:#404a5e;margin-top:6vh;letter-spacing:.02em}
+  @media(max-width:560px){.cert{padding:26px 20px 22px}.row .lab{flex-basis:82px}.cert::before{font-size:100px}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<main>
+
+  <!-- 1 · the constant -->
+  <section>
+    <div class="kicker reveal">what never changes</div>
+    <div class="needs reveal" id="needs">
+      <span>to be known</span><span class="dot">·</span><span>to be trusted</span><span class="dot">·</span>
+      <span>to be loved</span><span class="dot">·</span><span>to be cared for</span><span class="dot">·</span>
+      <span>to work</span><span class="dot">·</span><span>to belong</span><span class="dot">·</span><span>to be laid to rest</span>
+    </div>
+  </section>
+
+  <!-- 2 · the thesis -->
+  <section>
+    <h2 class="reveal">The means became agentic.<br>The meaning stayed <span class="g">human</span>.</h2>
+    <p class="lede reveal">In 2036 every resident, business, and institution acts through agents.
+      This is the Town Clerk's office for that town.</p>
+  </section>
+
+  <!-- 3 · the villain -->
+  <section id="villain">
+    <div class="kicker reveal">an agent with no one behind it</div>
+    <h1 class="reveal">Provably <span class="rd">nobody's</span>.</h1>
+    <p class="lede reveal">An unregistered agent resolves to no human, no institution — to no one.
+      It is <span class="rd">refused everywhere</span>. And the town does not merely stay silent on it:
+      <span class="ink">it signs a verdict that says so.</span></p>
+    <div class="stage reveal" style="margin-top:5vh"><div class="cert" id="cert-void"></div></div>
+  </section>
+
+  <!-- 4 · the gesture (hero) -->
+  <section id="hero">
+    <div class="kicker reveal">one signed call</div>
+    <h1 class="reveal">Every agent is a <span class="gold">titled</span> asset.</h1>
+    <p class="lede reveal">Registered like a vehicle or a deed — titled to a human or institution,
+      bounded, revocable, inherited by will. One call reveals who's behind it, and whether they may act right now.</p>
+
+    <div class="stage reveal" style="margin-top:5vh"><div class="cert" id="cert-hero"></div></div>
+    <div class="livebadge" id="live"><span class="pip"></span><span id="live-txt">re-verifying against the live ledger…</span></div>
+
+    <form class="window reveal" id="win" autocomplete="off">
+      <label for="q">agent id</label>
+      <input id="q" name="q" spellcheck="false" placeholder="name an agent…  e.g. a-ada-01" value="a-ada-01">
+      <button type="submit">Pull title</button>
+    </form>
+    <div class="try reveal">try&nbsp; <b data-id="a-ada-01">a-ada-01</b> &nbsp;<b data-id="a-marlow-01">a-marlow-01</b>
+      &nbsp;<b data-id="a-tam-01">a-tam-01</b> &nbsp;<b data-id="a-silas-01">a-silas-01</b> &nbsp;<b data-id="a-nobody-7f3">a-nobody-7f3</b></div>
+  </section>
+
+  <!-- 5 · capacity follows real life -->
+  <section id="capacity">
+    <div class="kicker reveal">capacity follows real life</div>
+    <h2 class="reveal">The same title. A different <span class="g">truth</span>.</h2>
+    <p class="lede reveal">A human's real-world standing — jailed, comatose, a child, gone —
+      flows to their agent automatically. The ledger re-decides the moment one civic fact changes.</p>
+    <div class="gallery reveal" id="gallery"></div>
+  </section>
+
+  <!-- 6 · the root -->
+  <section>
+    <svg class="seal reveal" viewBox="0 0 200 200" aria-label="constitutional seal">
+      <defs><path id="ring" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>
+      <circle cx="100" cy="100" r="88" fill="none" stroke="#9a7f45" stroke-width="1"/>
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#d8b46a" stroke-width="1.5"/>
+      <circle cx="100" cy="100" r="52" fill="none" stroke="#9a7f45" stroke-width="1"/>
+      <text fill="#d8b46a" font-size="12.5" letter-spacing="3">
+        <textPath href="#ring" startOffset="0%">★ THE CIVIL LEDGER ★ ENABLED MODEL TOWN OF ALFORD ★ 2036 ★</textPath>
+      </text>
+      <text x="100" y="92" text-anchor="middle" fill="#e8edf6" font-size="22" letter-spacing="2">KYA</text>
+      <text x="100" y="116" text-anchor="middle" fill="#9a7f45" font-size="9" letter-spacing="3">ROOT OF TRUST</text>
+      <path d="M100 128 l4 8 9 1 -6.5 6.5 1.5 9 -8-4.5 -8 4.5 1.5-9 -6.5-6.5 9-1z" fill="#d8b46a"/>
+    </svg>
+    <h2 class="reveal">One human-signed key at the root of <span class="gold">all</span> trust.</h2>
+    <p class="lede reveal">Every title, every verdict, every refusal chains up to a single constitutional key.
+      The law is the code — generated from what enforces it, and signed.</p>
+  </section>
+
+  <!-- 7 · the close -->
+  <section>
+    <div class="kicker reveal">the only question that matters before value moves</div>
+    <h1 class="reveal">Who is behind you —<br>and may they <span class="g">act right now</span>?</h1>
+    <div class="doors reveal">
+      <a class="door primary" href="/constitution.md" target="_blank" rel="noopener">Read the Constitution</a>
+      <a class="door" href="/city" target="_blank" rel="noopener">Walk the town ↗</a>
+      <a class="door" href="/console" target="_blank" rel="noopener">Open the live API console ↗</a>
+    </div>
+    <div class="foot reveal">KYA — Know Your Agent · The Civil Ledger of Alford · The means became agentic. The meaning stayed human.</div>
+  </section>
+
+</main>
+
+<script>
+/* ---- real, signed records captured from the live ledger; the page renders these instantly,
+       then re-verifies against the API same-origin and pulses "live" when it confirms. ---- */
+const BAKED = {
+  "a-ada-01": {"agent_id":"a-ada-01","proceed":true,"reason_code":"OK","principal_ref":"p-ada-marsh",
+    "principal_name":"Ada Marsh","principal_kind":"human","status":"active","governed_by":"self","spend_cap":null,
+    "category":"commerce","allowed_categories":["civic","commerce","family_support","financial","legal","medical","social"],
+    "valid_until":"2036-07-11T04:02:16Z","signature":"WIhUt96Po0OB6ezM7ZRHWhp5UeqzjhyAEAfoS07sw5qBw/CBl6ojz+2rRzj/cHxOh2uiycxqjbFJ0LWoNNueAA==",
+    "resolution_chain":[
+      {"level":"root","authority":"city-root"},
+      {"level":"institution","authority":"registrar","name":"Alford Bureau of Vital Records"},
+      {"level":"principal","id":"p-ada-marsh","kind":"human","status":"active"},
+      {"level":"agent","id":"a-ada-01","class":"individual","binding":"b-ada"}]},
+  "a-nobody-7f3": {"agent_id":"a-nobody-7f3","proceed":false,"reason_code":"NXAGENT","principal_ref":null,
+    "principal_name":null,"status":null,"governed_by":null,"allowed_categories":[],"category":"commerce",
+    "summary":"No agent with this id exists in the town.","valid_until":"2036-07-11T04:02:16Z",
+    "signature":"1EUxzEtgbdThNe82VF00nClUu4mX4e1LRDhu/Twdn6kQ4NXRidmF5ZyHzyqDzt4fu0lw7uVQVsefrCUjHYobBA==",
+    "resolution_chain":[]}
+};
+/* the gallery — capacity follows real life (real principals, real allowed sets) */
+const GALLERY = [
+  {name:"Ada Marsh", agent:"a-ada-01", status:"active", cls:"ok",
+   cap:"Full standing. Her agent may transact anywhere — commerce to a real-world meeting.",
+   verdict:"commerce → PROCEED ✓", vcls:"ok"},
+  {name:"Marlow Reyes", agent:"a-marlow-01", status:"incarcerated", cls:"fr",
+   cap:"May support family and hire a lawyer — but cannot open a storefront, and cannot arrange a meeting.",
+   verdict:"commerce → REFUSED · CATEGORY_NOT_ALLOWED", vcls:"no"},
+  {name:"Tam Holt", agent:"a-tam-01", status:"minor", cls:"fr",
+   cap:"A child. Money is frozen and routed to their parents as regents; a $50 cap; no adult meetings.",
+   verdict:"financial → REFUSED · CAPACITY_FROZEN", vcls:"fr"},
+  {name:"Silas Crane", agent:"a-silas-01", status:"deceased", cls:"es",
+   cap:"Every door closed but the estate — and only the executor, a-vane-exec, may open it.",
+   verdict:"estate → PROCEED ✓  (executor)", vcls:"es"}
+];
+
+const CATS = {"a-ada-01":"commerce","a-marlow-01":"commerce","a-tam-01":"financial","a-silas-01":"estate","a-nobody-7f3":"commerce"};
+const NAMES = {"p-ada-marsh":"Ada Marsh","p-marlow-reyes":"Marlow Reyes","p-tam-holt":"Tam Holt","p-silas-crane":"Silas Crane"};
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function governedText(g){
+  if(!g||g==="self") return "self";
+  if(g.role==="executor") return "executor · "+esc(g.agent);
+  if(g.role==="regents") return "regents · "+ (g.agents||[]).map(esc).join(" / ");
+  if(g.role) return esc(g.role);
+  return "self";
+}
+function statusColor(s){return s==="active"?"var(--mint)":s==="deceased"?"var(--gold)":(s==="minor"||s==="incarcerated"||s==="missing"||s==="hospitalized")?"var(--amber)":"var(--red)";}
+
+function chainHTML(chain){
+  if(!chain||!chain.length) return `<div class="void">— no chain — this agent resolves to nobody —</div>`;
+  const glyph={root:"◈",institution:"▮",principal:"●",agent:"▸"};
+  let out=[];
+  chain.forEach((n,i)=>{
+    const active = n.level==="principal" && n.status==="active";
+    let nm = n.level==="root" ? "city-root"
+           : n.level==="institution" ? esc(n.name||n.authority)
+           : n.level==="principal" ? esc(NAMES[n.id]||n.id)
+           : esc(n.id);
+    let meta = n.level==="principal" ? `· ${esc(n.kind||"")} · ${esc(n.status||"")}`
+             : n.level==="agent" ? `· ${esc(n.class||"")}`
+             : n.level==="institution" ? "· registrar" : "· root of trust";
+    out.push(`<div class="node ${n.level==="root"?"root":""} ${n.level==="principal"?"prin":""} ${active?"active":""}">
+      <span class="glyph">${glyph[n.level]||"·"}</span><span class="nm">${nm}</span><span class="meta">${meta}</span></div>`);
+    if(i<chain.length-1) out.push(`<div class="link">│</div>`);
+  });
+  return `<div class="chain">${out.join("")}</div>`;
+}
+
+function stampFor(d){
+  if(d.proceed) return `<div class="stamp">REGISTERED<br>MAY ACT<small>in ${esc(d.category)}</small></div>`;
+  if(d.reason_code==="NXAGENT"||d.reason_code==="NO_VALID_BINDING")
+    return `<div class="stamp refuse">REFUSED<small>${esc(d.reason_code)}</small></div>`;
+  if(d.reason_code==="CAPACITY_FROZEN")
+    return `<div class="stamp frozen">FROZEN<small>capacity</small></div>`;
+  return `<div class="stamp refuse">REFUSED<small>${esc(d.reason_code||"denied")}</small></div>`;
+}
+
+function renderCert(el,d){
+  const titled = d.principal_ref
+    ? `${esc(d.principal_name||NAMES[d.principal_ref]||d.principal_ref)} <span class="kind">· ${esc(d.principal_kind||"human")}</span>`
+    : `<span class="rd">— no one —</span>`;
+  const standing = d.status
+    ? `<span class="standing" style="color:${statusColor(d.status)}">${esc(d.status)}</span>`
+    : `<span class="standing rd">unresolved</span>`;
+  const cats = (d.allowed_categories&&d.allowed_categories.length)
+    ? d.allowed_categories.map(c=>`<span class="chip ${c===d.category&&d.proceed?"ok":""}">${esc(c)}</span>`).join("")
+    : `<span class="chip">— none —</span>`;
+  const sig = esc(d.signature||"").slice(0,44)+"…";
+  el.innerHTML = `
+    <div class="cert-top">
+      <div><div class="cert-title">Certificate of Registration</div>
+        <div class="cert-sub">Town of Alford · The Civil Ledger</div></div>
+      ${stampFor(d)}
+    </div>
+    <div class="row"><div class="lab">Agent</div><div class="val"><span class="mono">${esc(d.agent_id)}</span></div></div>
+    <div class="row"><div class="lab">Titled to</div><div class="val">${titled}</div></div>
+    <div class="row"><div class="lab">Standing</div><div class="val">${standing}</div></div>
+    <div class="row"><div class="lab">Governed by</div><div class="val">${governedText(d.governed_by)}</div></div>
+    <div class="row"><div class="lab">Authority</div><div class="val">${chainHTML(d.resolution_chain)}</div></div>
+    <div class="row"><div class="lab">May transact</div><div class="val"><div class="chips">${cats}</div></div></div>
+    <div class="cert-foot">
+      <div class="sig"><b>Signed under root key · valid until ${esc((d.valid_until||"").replace("T"," ").replace("Z"," UTC"))}</b>${sig}</div>
+    </div>`;
+}
+
+/* ---- initial render from baked truth ---- */
+renderCert(document.getElementById("cert-hero"), BAKED["a-ada-01"]);
+renderCert(document.getElementById("cert-void"), BAKED["a-nobody-7f3"]);
+
+/* gallery */
+document.getElementById("gallery").innerHTML = GALLERY.map(g=>`
+  <div class="mini">
+    <h3>${g.name}</h3><div class="who">${g.agent}</div>
+    <span class="st" style="color:${statusColor(g.status)};border-color:${statusColor(g.status)}33">${g.status}</span>
+    <div class="cap">${g.cap}</div>
+    <div class="verdict ${g.vcls}">${g.verdict}</div>
+  </div>`).join("");
+
+/* ---- live re-verification (same-origin). Renders nothing new unless it succeeds. ---- */
+async function pull(id, {hero=false}={}){
+  const cat = CATS[id] || "commerce";
+  const cell = hero ? document.getElementById("cert-hero") : document.getElementById("cert-hero");
+  try{
+    const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), 8000);
+    const r = await fetch(`/verify-counterparty?agent_id=${encodeURIComponent(id)}&category=${cat}`,{signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok) throw new Error("http "+r.status);
+    const d = await r.json();
+    // normalize principal name from resolution chain if present
+    if(d.principal_ref && !d.principal_name){
+      const p=(d.resolution_chain||[]).find(n=>n.level==="principal");
+      d.principal_name = NAMES[d.principal_ref] || d.principal_ref;
+      if(p){ d.status=p.status; d.principal_kind=p.kind; }
+    }
+    d.category = cat;
+    renderCert(document.getElementById("cert-hero"), d);
+    const badge=document.getElementById("live"); badge.classList.add("on");
+    document.getElementById("live-txt").textContent = "✓ live · signed just now by the Alford root key";
+    return true;
+  }catch(e){
+    // ledger asleep or offline (e.g. opened as a file) — keep the baked record, note it honestly
+    if(BAKED[id]) renderCert(document.getElementById("cert-hero"), BAKED[id]);
+    else renderCert(document.getElementById("cert-hero"), {agent_id:id,proceed:false,reason_code:"NXAGENT",
+      resolution_chain:[],allowed_categories:[],category:cat,summary:"unknown"});
+    const badge=document.getElementById("live"); badge.classList.add("on");
+    document.getElementById("live-txt").textContent = "showing the last signed record (ledger waking)…";
+    return false;
+  }
+}
+
+/* ?static=1 → render baked truth only, no live fetch / no motion (for capture & no-JS parity) */
+const STATIC=/[?&]static/.test(location.search);
+
+/* re-verify the hero once it scrolls into view (gives a cold Render dyno time to wake) */
+let heroPulled=false;
+const heroObs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting && !heroPulled){heroPulled=true;pull("a-ada-01",{hero:true});}});},{threshold:.4});
+if(!STATIC) heroObs.observe(document.getElementById("cert-hero"));
+
+/* the clerk's window */
+const q=document.getElementById("q");
+document.getElementById("win").addEventListener("submit",e=>{e.preventDefault();const id=q.value.trim();if(id)pull(id);});
+document.querySelectorAll(".try b").forEach(b=>b.addEventListener("click",()=>{q.value=b.dataset.id;pull(b.dataset.id);}));
+
+/* reveals + progress — progressive enhancement: content is visible by default; we turn on
+   the scroll-reveal only once JS runs, so no-JS (and first paint) still shows everything. */
+const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add("on");});},{threshold:.18});
+if(!STATIC) requestAnimationFrame(()=>{
+  document.documentElement.classList.add("anim");
+  document.querySelectorAll(".reveal").forEach(el=>{
+    const r=el.getBoundingClientRect();
+    if(r.top<innerHeight&&r.bottom>0) el.classList.add("on");   // keep in-view content visible (no flash)
+    obs.observe(el);
+  });
+});
+addEventListener("scroll",()=>{const h=document.documentElement;const p=h.scrollTop/(h.scrollHeight-h.clientHeight)*100;document.getElementById("bar").style.width=p+"%";},{passive:true});
+</script>
+</body>
+</html>

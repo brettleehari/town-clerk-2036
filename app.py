@@ -906,6 +906,18 @@ def city_ui():
             return HTMLResponse(f.read())
     return HTMLResponse("<h1>city.html not bundled</h1>", status_code=404)
 
+@app.get("/title")
+def title_ui():
+    """The hero landing — an agent's Title (Certificate of Registration) as a civic object.
+    Renders real signed records instantly, then re-verifies live same-origin: point at any
+    agent and watch one signed call resolve it to its human and their standing to act, or
+    stamp it REFUSED · NXAGENT. The whole thesis in one gesture."""
+    path = os.path.join(os.path.dirname(__file__), "title.html")
+    if os.path.exists(path):
+        with open(path) as f:
+            return HTMLResponse(f.read())
+    return HTMLResponse("<h1>title.html not bundled</h1>", status_code=404)
+
 @app.get("/console")
 def api_console():
     """A live API console — pick any operation, fill params, run it, and see the real

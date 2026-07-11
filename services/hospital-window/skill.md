@@ -48,6 +48,20 @@ town-wide and automatic:
 
 No consumer service is notified, polled, or updated. They read the same ledger.
 
+## ⇢ Runnable scenarios (the playbook, as an API)
+
+Every story below is also **discoverable and executable** — no need to parse this prose:
+
+    GET  /scenarios              — the menu (round-trip, incapacity-arc, fleet-freeze, rogue-agent, …)
+    GET  /scenarios/{id}         — exact steps, expectations, and a ready-to-paste curl for each
+    POST /scenarios/{id}/run     — execute end-to-end and get a step-by-step transcript
+    GET  /scenarios/actions      — the whitelisted action vocabulary
+    POST /scenarios              — compose your OWN scenario from those actions
+
+The court/hospital/police keys stay **behind this service** — you name an action, never a
+credential. Scenarios marked `writes:true` change civil status (reversibly — cleanup is
+built in) and require `{"confirm": true}` on `/run`. Start with `GET /scenarios`.
+
 ## Endpoints
 
 ### POST /admit

@@ -33,6 +33,20 @@ HOSPITAL_KEY = os.environ.get("HOSPITAL_KEY")   # optional; else self-register b
 app = FastAPI(title="hospital-window — admitting desk", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+# The runnable scenario plane — the SKILL.md playbook as an API (discover, inspect, compose,
+# run). Import works whether uvicorn loads `main` from this dir or a loader imports it by file
+# path (e.g. the composition test), so scenario_api is always found next to this file.
+try:
+    from scenario_api import router as scenario_router
+except ModuleNotFoundError:
+    import importlib.util
+    _spec = importlib.util.spec_from_file_location(
+        "scenario_api", os.path.join(os.path.dirname(__file__), "scenario_api.py"))
+    _mod = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    scenario_router = _mod.router
+app.include_router(scenario_router)
+
 def _ledger(method: str, path: str, **kw) -> dict:
     """Call the Civil Ledger, retrying only what retrying can fix. A cold-started free-tier
     host hangs or 5xxs, so back off and try again. But a 4xx is the ledger's considered

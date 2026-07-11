@@ -349,3 +349,4 @@ read — start here:
 
 - **The living town:** https://civil-ledger.onrender.com/town
 - **The API console** (run any endpoint from the browser): https://civil-ledger.onrender.com/console
+- **The Constitution** (the signed law, as a page): https://civil-ledger.onrender.com/constitution.html

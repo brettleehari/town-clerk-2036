@@ -695,6 +695,162 @@ def build_constitution() -> dict:
     return sign_payload(doc)
 
 # --------------------------------------------------------------------------- #
+#  Discovery layer: /start + /cast + /scenarios                                #
+#  Turns a context-free agent (skill.md text + live HTTP only) into one that   #
+#  can run the whole show unaided. Generated from live seed data so it never   #
+#  drifts from the real ids.                                                    #
+# --------------------------------------------------------------------------- #
+
+# What each seeded agent is here to demonstrate (curated; the rest are described from status).
+CAST_SHOWS = {
+    "a-ada-01":    "the happy path — a real resident whose agent may transact anywhere",
+    "a-shadow-99": "NO_VALID_BINDING — an impostor bound to no human; provably nobody's",
+    "a-vosk-99":   "NO_VALID_BINDING — an impostor for Hanna Vosk, a citizen who owns no agent at all",
+    "a-bram-01":   "one human, many agents — change Bram's status and all three re-decide at once",
+    "a-bram-work": "part of Bram Kessler's fleet — shares his civil status",
+    "a-bram-shop": "part of Bram Kessler's fleet — revoke just this one with the kill switch",
+    "a-tam-01":    "CAPACITY_FROZEN — a minor; money routed to regents, a spend cap, no `social`",
+    "a-marlow-01": "incarcerated — `legal` and `family_support` only; `commerce` refused",
+    "a-silas-01":  "PRINCIPAL_DECEASED — estate only, and only via the executor",
+    "a-vane-exec": "the executor who may act on Silas Crane's estate",
+}
+
+def build_cast() -> list:
+    """The seeded roster a blind agent can act on: every agent, who it stands for, its
+    civil standing, and what it demonstrates. Replaces references/seeded-town.md over HTTP."""
+    with db() as c:
+        agents = c.execute("SELECT id,name,class FROM agents ORDER BY id").fetchall()
+        binds = c.execute("SELECT agent_id,principal_id,corporation_id FROM bindings "
+                          "WHERE status='active'").fetchall()
+        princ = {r["id"]: r for r in c.execute("SELECT id,name,status FROM principals").fetchall()}
+        corps = {r["id"]: r["name"] for r in c.execute("SELECT id,name FROM corporations").fetchall()}
+    bmap = {b["agent_id"]: b for b in binds}
+    cast = []
+    for a in agents:
+        aid, b = a["id"], bmap.get(a["id"])
+        if b and b["principal_id"] and b["principal_id"] in princ:
+            p = princ[b["principal_id"]]
+            of, pid, status = p["name"], p["id"], p["status"]
+        elif b and b["corporation_id"]:
+            of, pid, status = corps.get(b["corporation_id"], b["corporation_id"]), b["corporation_id"], "corporate"
+        else:
+            of, pid, status = "— nobody —", None, "impostor"
+        cast.append({
+            "agent_id": aid, "of": of, "principal_id": pid, "status": status,
+            "class": a["class"],
+            "shows": CAST_SHOWS.get(aid) or f"{status} — resolves to {of}",
+            "try": f"GET /verify-counterparty?agent_id={aid}&category=commerce",
+        })
+    order = list(CAST_SHOWS)
+    cast.sort(key=lambda e: order.index(e["agent_id"]) if e["agent_id"] in order else 999)
+    return cast
+
+def build_scenarios() -> list:
+    """The runnable menu — each scenario is an ordered, executable script an agent runs
+    verbatim, including the write plane. Replaces references/task-recipes.md over HTTP."""
+    return [
+        {
+            "name": "Catch the impostor at the storefront",
+            "why": "the flagship — the whole value in two calls, no key needed",
+            "run_as": "any agent (reads are open)",
+            "steps": [
+                {"call": "GET /verify-counterparty?agent_id=a-ada-01&category=commerce",
+                 "expect": "proceed:true · reason_code:OK — a real customer, serve them"},
+                {"call": "GET /verify-counterparty?agent_id=a-shadow-99&category=commerce",
+                 "expect": "proceed:false · reason_code:NO_VALID_BINDING — a rogue, refuse it"},
+            ],
+            "moral": "Verify before value moves. The rogue resolves to nobody — and the refusal is signed too.",
+        },
+        {
+            "name": "Change one fact — the whole life re-decides",
+            "why": "the awe: one civic fact moves and an entire fleet of agents re-decides, with no record edits",
+            "run_as": "self-serve a court key via POST /institutions/register",
+            "steps": [
+                {"call": "GET /resolve/a-bram-01  (and a-bram-work, a-bram-shop)",
+                 "expect": "all three resolve to principal_ref p-bram-kessler — one human, three tools"},
+                {"call": "POST /institutions/register  {\"name\":\"Demo Court\",\"role\":\"court\"}",
+                 "capture": "api_key — send it as X-API-Key on the next call"},
+                {"call": "POST /attestations  {\"principal_id\":\"p-bram-kessler\",\"event\":\"sentence\",\"detail\":{\"acl\":[\"legal\",\"family_support\"]}}",
+                 "headers": "X-API-Key: <the court key>"},
+                {"call": "GET /verify-counterparty?agent_id=a-bram-01&category=commerce",
+                 "expect": "reason_code:CATEGORY_NOT_ALLOWED — and the same for a-bram-work and a-bram-shop"},
+                {"call": "GET /verify-counterparty?agent_id=a-bram-01&category=legal",
+                 "expect": "proceed:true — legal is still permitted"},
+                {"call": "POST /attestations  {\"principal_id\":\"p-bram-kessler\",\"event\":\"release\"}",
+                 "note": "restores all three at once — nobody edited three records"},
+            ],
+            "moral": "The person is the unit of trust; the agents are interchangeable tools that inherit their human's standing.",
+        },
+        {
+            "name": "The human kill switch",
+            "why": "the one right with zero latency — 'that thing no longer speaks for me'",
+            "run_as": "self-serve a registrar key, immigrate, then wield your own principal_key",
+            "steps": [
+                {"call": "POST /institutions/register  {\"name\":\"Demo Registrar\",\"role\":\"registrar\"}",
+                 "capture": "api_key"},
+                {"call": "POST /immigrate  {\"name\":\"Rae Fenn\"}",
+                 "headers": "X-API-Key: <the registrar key>",
+                 "capture": "agent_id, binding_id, principal_key"},
+                {"call": "GET /verify-counterparty?agent_id=<your agent_id>&category=commerce",
+                 "expect": "proceed:true — you are a resident, your agent may act"},
+                {"call": "DELETE /bindings/<your binding_id>",
+                 "headers": "X-Principal-Key: <your principal_key>",
+                 "note": "instant, no institution, no delay"},
+                {"call": "GET /verify-counterparty?agent_id=<your agent_id>&category=commerce",
+                 "expect": "proceed:false · reason_code:NO_VALID_BINDING — the agent no longer speaks for you"},
+            ],
+            "moral": "In an agentic society the one action that must never have latency is disowning the thing that acts for you.",
+        },
+    ]
+
+def build_seed_keys() -> dict:
+    """The seeded demo institutions' keys, read from the live DB (never hand-written). These
+    are the sandbox town's public demo credentials — they let an agent run the write-plane
+    scenarios without a registration step. Any drift is impossible; the town resets on
+    POST /admin/reset-seed. (Real institutions self-serve via POST /institutions/register.)"""
+    with db() as c:
+        rows = c.execute("SELECT role, api_key FROM institutions WHERE api_key LIKE 'sk_seed_%'").fetchall()
+    return {r["role"]: r["api_key"] for r in rows}
+
+def build_start(full: bool = False) -> dict:
+    """The single entrypoint. Curated by design: everything needed to ACT travels inline
+    (goal, prime directive, the decision-relevant law, the cast, the runnable scenarios),
+    and everything needed to STUDY is linked out — so the agent doesn't burn context on
+    11KB of prose it doesn't need. `?full=1` inlines the entire signed constitution.
+    Generated from the seed DB and the same source that emits /constitution, so the
+    briefing can never drift from the enforced law."""
+    law = {
+        "categories": CATEGORIES,
+        "status_acl": {s: sorted(list(a)) for s, a in STATUS_ACL.items()},
+        # short, action-oriented meanings, straight from the enforcement guidance table:
+        "reason_codes": {code: g[0] for code, g in _GUIDANCE.items()},
+        "full_constitution": "/constitution",   # signed JSON — fetch only to reason about the law
+        "prose": "/constitution.md",
+    }
+    if full:
+        law["constitution"] = build_constitution()   # the entire signed document, inline
+    return {
+        "service": "KYA — Know Your Agent · The Civil Ledger",
+        "town": TOWN_NAME,
+        "now": now_iso(),
+        "goal": ("KYC for the agent economy: verify the human or institution behind an agent, "
+                 "and their standing to act, before you transact."),
+        "prime_directive": ("Call GET /verify-counterparty?agent_id=&category= before any deal. "
+                            "Serve only on proceed:true; proceed:false → do not transact. The "
+                            "refusal is signed too — trust it."),
+        "law": law,
+        # curated cast: the demo-relevant agents only (the full roster is at /cast), so the
+        # briefing stays high-signal.
+        "cast": [c for c in build_cast() if c["agent_id"] in CAST_SHOWS or c["status"] == "impostor"],
+        "cast_full": "/cast",
+        "scenarios": build_scenarios(),
+        "keys": build_seed_keys(),
+        "next": ("Pick a scenario and run its steps verbatim; verify signatures against GET "
+                 "/pubkey. Resolve any reason_code at GET /explain/{code}. The living map for "
+                 "humans is at /town. Add ?full=1 here for the entire signed constitution inline."),
+    }
+
+# --------------------------------------------------------------------------- #
 #  API                                                                          #
 # --------------------------------------------------------------------------- #
 
@@ -749,6 +905,36 @@ def constitution_md():
     if os.path.exists(p):
         return PlainTextResponse(open(p).read())
     return PlainTextResponse("CONSTITUTION.md not bundled", status_code=404)
+
+@app.get("/start")
+def start(full: int = 0):
+    """START HERE. One call briefs a context-free agent to run the whole town: the goal, the
+    prime directive, the decision-relevant law, the cast of agents to act on, the runnable
+    scenarios, and the demo keys. Curated to what you need to ACT; add ?full=1 to inline the
+    entire signed constitution too."""
+    return build_start(full=bool(full))
+
+@app.get("/cast")
+def cast():
+    """The seeded roster: every demo agent, who it stands for, its civil standing, what it
+    demonstrates, and the exact call to try. The agents a blind agent can act on."""
+    return {"town": TOWN_NAME, "cast": build_cast()}
+
+@app.get("/scenarios")
+def scenarios():
+    """The runnable menu: each scenario is an ordered, executable script — pick one and run
+    its steps verbatim, including the write plane."""
+    return {"town": TOWN_NAME, "scenarios": build_scenarios()}
+
+@app.get("/explain/{reason_code}")
+def explain_code(reason_code: str):
+    """Plain-English meaning of a verdict's reason_code, so an agent can narrate its refusals
+    like a clerk instead of dumping codes. Same source as the signed verdicts' guidance."""
+    g = _GUIDANCE.get(reason_code.upper())
+    if not g:
+        return JSONResponse({"reason_code": reason_code, "known": False,
+                             "codes": sorted(_GUIDANCE)}, status_code=404)
+    return {"reason_code": reason_code.upper(), "known": True, "meaning": g[0], "what_to_do": g[1]}
 
 @app.get("/resolve/{agent_id}")
 def resolve(agent_id: str):

@@ -38,6 +38,18 @@ category, right now?"** — and gets back an Ed25519-signed verdict it can verif
 (Live. The free-tier host sleeps when idle: call `GET /health` first and retry once after
 ~30–60s if it does not answer. Every read endpoint is open — no API key.)
 
+## ⇢ START HERE
+
+    GET /start          — one call: the goal, the prime directive, the decision-relevant
+                          law, the cast of agents to act on, runnable scenarios, and demo keys
+    GET /start?full=1   — the same briefing with the entire signed constitution inlined
+
+**Read it, pick a scenario, run its `steps` verbatim.** That is the whole show. The briefing
+is generated from the live seed and the same source that emits `/constitution`, so it can
+never drift from the enforced law. Supporting calls: `GET /cast` (full roster), `GET
+/scenarios` (the runnable menu), `GET /explain/{reason_code}` (plain-English meaning of any
+verdict). Everything below is reference detail.
+
 ---
 
 # Part 1 — How to think (the operating model)
